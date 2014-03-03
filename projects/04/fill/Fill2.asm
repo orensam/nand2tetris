@@ -42,6 +42,7 @@
     @SCREEN
     D = A + 1;
     D = D + 1;
+    D = D + 1;
 
     @i
     D = D - M
@@ -63,6 +64,7 @@
 
     @SCREEN
     D = A + 1;
+    D = D + 1;
     D = D + 1;
 
     @i
