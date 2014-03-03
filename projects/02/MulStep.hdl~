@@ -1,0 +1,17 @@
+// File name: projects/02/MulStep.hdl
+
+/**
+* Performs one step of a long multiplication.
+*/
+
+CHIP MulStep{
+    IN a[16], b[16], prevsum[16];
+    OUT out[16], aout[16], bout[16];
+
+    PARTS:
+    Or(a=false, b=b[0], out=carry);
+    Mux16(a=false, b=a, sel=carry, out=res);
+    Add16(a=res, b=prevsum, out=out);
+    ShiftRight(in=b, out=bout);
+    ShiftLeft(in=a, out=aout);
+}

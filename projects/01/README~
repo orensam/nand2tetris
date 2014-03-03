@@ -1,0 +1,33 @@
+romig, orensam
+===============================================================================
+Romi Gelman, ID 302170089, romi.gelman@mail.huji.ac.il
+Oren Samuel, ID 200170694, oren.samuel@mail.huji.ac.il
+===============================================================================
+
+                           Project 01 - Elementary Logic Gates
+                           -----------------------------------
+  
+
+Submitted Files
+---------------
+Not.hdl - Negates the input bit.
+And.hdl - Returns a&&b.
+Or.hdl - Returns a||b.
+Xor.hdl - Returns a^b.
+Mux.hdl - Returns a or b according to selection bit.
+DMux.hdl - Puts input bit into a or b according to selection bit.
+Not16.hdl - Negates a 16 bit buffer.
+And16.hdl - Performs a[i]&&b[i] for each i on the two 16-bit buffers a,b.
+Or16.hdl - Performs a[i]||b[i] for each i on the two 16-bit buffers a,b.
+Mux16.hdl - Performs Mux(a[i],b[i], sel) for each i on the two 16-bit buffers a,b with a given selection bit.
+Or8Way.hdl - Returns a[0]||a[1]||...||a[7] on a 8-bit buffer a.
+Mux4Way16.hdl - Returns one of 4 16-bit buffers according to selection buffer sel.
+Mux8Way16.hdl - Returns one of 8 16-bit buffers according to selection buffer sel.
+DMux4Way.hdl - Puts input bit into one of 4 outputs according to selection buffer.
+DMux8Way.hdl - Puts input bit into one of 8 outputs according to selection buffer.
+
+README - This file.
+
+Remarks
+-------
+None.

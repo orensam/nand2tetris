@@ -1,0 +1,38 @@
+romig, orensam
+===============================================================================
+Romi Gelman, ID 302170089, romi.gelman@mail.huji.ac.il
+Oren Samuel, ID 200170694, oren.samuel@mail.huji.ac.il
+===============================================================================
+
+                           Project 03 -  Sequential Chips
+                           ---------------------------------
+
+Submitted Files
+---------------
+
+HalfAdder.hdl - Computes the sum of two bits and carry value.
+FullAdder.hdl - Computes the sum of three bits and carry value.
+Add16.hdl - Adds two 16-bit values. The most-significant carry bit is ignored.
+Inc16.hdl - 16-bit incrementer: out = in + 1 (arithmetic addition).
+ALU.hdl - Computes one of several functions on two input 16-bit buffers and given flags.
+
+ShiftLeft.hdl - Multiplies a 16-buffer by 2.
+
+IsNeg16.hdl - Checks if the first bit of a 16-bit buffer is 1 (i.e the number is negative).
+ShiftRight.hdl - Divides the input 16-bit buffer by 2.
+
+MulStep.hdl - Performs one step of a long multiplication.
+Mul.hdl - Multiplies two binary numbers.
+
+README - This file.
+
+Remarks
+-------
+Two helper chips were added:
+
+IsNeg16, which checks whether a buffer represents a negative number, is used in ShiftRight chip,
+in order to conserve the sign of the shift's input.
+
+MulStep, which performs one step of a bitwise multiplication, is used 16 times in the Mul chip,
+in order to multiply the two numbers as a whole.
+

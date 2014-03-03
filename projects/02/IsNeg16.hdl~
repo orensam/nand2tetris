@@ -1,0 +1,13 @@
+// File name: projects/02/IsNeg16.hdl
+
+/**
+ * Checks if the first bit is 1 (i.e the number is negative)
+ */
+
+CHIP IsNeg16 {
+    IN in[16];
+    OUT out;
+
+    PARTS:
+    Mux(a=true, b=false, sel=in[15], out=out);
+}

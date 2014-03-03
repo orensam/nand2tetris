@@ -1,0 +1,11 @@
+/**
+* Puts the sign <sign> on a
+*/
+
+CHIP PutSign{
+    IN sign;
+    OUT out[16];
+
+    PARTS:
+    Or(a=sign, b=false, out=out[15]);   
+}

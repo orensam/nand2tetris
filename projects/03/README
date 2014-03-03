@@ -1,0 +1,49 @@
+romig, orensam
+===============================================================================
+Romi Gelman, ID 302170089, romi.gelman@mail.huji.ac.il
+Oren Samuel, ID 200170694, oren.samuel@mail.huji.ac.il
+===============================================================================
+
+                           Project 03 -  Sequential Chips
+                           ------------------------------
+
+Submitted Files
+---------------
+
+a/Bit.hdl - 1-bit register. Uses the built-in primitive DFF chip.
+
+a/Register.hdl -  16-bit register. Uses 16 Bit chips.
+
+a/DMux8Way16.hdl - A helper chip -  8-Way demultiplexer for 16-bit buffers. Used by the RAM chips.
+b/DMux8Way16.hdl - Same as previous, added also to b folder to chip loading succeeds.
+b/DMux4Way16.hdl - A helper chip -  4-Way demultiplexer for 16-bit buffers. Used by the RAM16K chip.
+
+a/RAM8.hdl - Memory of 8 registers, each 16 bit-wide. Out holds the value
+stored at the memory location specified by address. Uses 8 Register chips.
+Loads into the memory according to load flag.
+
+a/RAM64.hdl - Memory of 64 registers, each 16 bit-wide. Out hold the value
+stored at the memory location specified by address. Uses 8 RAM8 chips.
+Loads into the memory according to load flag.
+
+b/RAM512.hdl - Memory of 512 registers, each 16 bit-wide. Out holds the value
+stored at the memory location specified by address. Uses 8 RAM64 chips.
+Loads into the memory according to load flag.
+
+b/RAM4K.hdl - Memory of 4K registers, each 16 bit-wide. Out holds the value
+stored at the memory location specified by address. Uses 8 RAM512 chips.
+Loads into the memory according to load flag.
+
+b/RAM16K.hdl  - Memory of 16K registers, each 16 bit-wide. Out holds the value
+stored at the memory location specified by address. Uses 4 RAM4K chips.
+Loads into the memory according to load flag.
+
+a/PC.hdl - A 16-bit counter with load, reset, and increment control bits.
+
+README - This file.
+
+Remarks
+-------
+Two custom chips were added - DMux8Way16.hdl and DMux4Way16.hdl, as described above.
+
+
