@@ -27,5 +27,17 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    
+    // Handle addresses and load bit
+    DMux(in=load, sel=address[14], a=ramload, b=scrload1);
+    Mux(a=scrload1, b = false, sel=address[13], out=scrload2);
+    
+    // Get possible outputs
+    RAM16K(in=in, load=ramload, address=address[0..13], out=ramout);
+    Screen(in=in, load=scrload2, address=address[0..12], out=scrout);
+    Keyboard(out=kbdout);
+    
+    // Choose output
+    Mux4Way16(a=ramout, b=ramout, c=scrout, d=kbdout, sel=address[13..14], out=out);
+    
 }
