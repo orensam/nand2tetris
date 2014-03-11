@@ -1,0 +1,36 @@
+romig, orensam
+===============================================================================
+Romi Gelman, ID 302170089, romi.gelman@mail.huji.ac.il
+Oren Samuel, ID 200170694, oren.samuel@mail.huji.ac.il
+===============================================================================
+
+                           Project 04 - Machine Language Programming
+                           ------------------------------
+
+Submitted Files
+---------------
+
+divide/Divide.asm - Divide the two integers saved in R13, R14, and save the result to R15.
+Uses the shift-and-subtract algorithm, Runs at O(logn) complexity.
+
+fill/Fill.asm - Runs an infinite loop that listens to the keyboard input. 
+When a key is pressed (any key), the program blackens the screen,
+i.e. writes "black" in every pixel. When no key is pressed, the
+program clears the screen, i.e. writes "white" in every pixel.
+
+mult/Mult.asm - Multiplies R0 and R1 and stores the result in R2.
+Uses an addition loop, which adds R1 to R2, R0 times.
+
+sort/Sort.asm - Bubble-Sort a list of integers which starts at the
+address saved in R14 and whose length is saved in R15.
+Main loop runs N times, and calls an inner loop
+which bubbles the smallest numbers upwards (runs N times as well).
+Total complexity O(N^2).
+
+README - This file.
+
+Remarks
+-------
+None.
+
+
