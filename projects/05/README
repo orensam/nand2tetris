@@ -1,0 +1,37 @@
+romig, orensam
+===============================================================================
+Romi Gelman, ID 302170089, romi.gelman@mail.huji.ac.il
+Oren Samuel, ID 200170694, oren.samuel@mail.huji.ac.il
+===============================================================================
+
+                           Project 05 - Computer Architecture
+                           ----------------------------------
+
+Submitted Files
+---------------
+Memory.hdl - The complete address space of the computer's memory, 
+including RAM and memory mapped I/O.
+ 
+CPU.hdl - The Central Processing unit (CPU).
+Consists of an ALU and a set of registers, designed to fetch and 
+execute instructions written in the Hack machine language.
+
+Computer.hdl - The HACK computer, including CPU, ROM and RAM.
+
+ExtendAlu.hdl - An extension of the original ALU, which allows multiplications and shifts.
+CpuMul.hdl - An extension of the original CPU which uses the extended ALU,
+which allows multiplications and shifts.
+
+Chips copied from projects 2,3, used in ExtendAlu.hdl:
+IsNeg16.hdl - Checks if the first bit of a 16-bit buffer is 1 (i.e the number is negative).
+ShiftLeft.hdl - Multiplies a 16-buffer by 2.
+ShiftRight.hdl - Divides the input 16-bit buffer by 2.
+MulStep.hdl - Performs one step of a long multiplication.
+Mul.hdl - Multiplies two binary numbers.
+Or16Way.hdl - Checks if any of a 16-bit buffer's bits is 1.
+
+README - This file.
+
+Remarks
+-------
+None.
