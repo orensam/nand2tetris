@@ -39,34 +39,40 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
+    
+    // Registers	
+	ARegister(in=mux1res, load=loadA, out=Aout, out[0..14]=addressM); // A register
+	DRegister(in=aluout, load=loadD, out=Dout); // D register
 	
-	
-	
-	
-	ALU(x=Dout, y=mux2res, zx= ,nx= , zy= ,  ny= , f= , no= , zr=iszero, ng=isneg, out=aluout, out=outM);
-	
-	
-	
-	
+    // Register control bits 
+	And(a=instruction[4], b=instruction[15], out=loadD);
+	Not(in=instruction[15], out=tmpLoadA);
+	Or(a=instruction[5], b=tmpLoadA, out=loadA);
+
+	// ALU - Control bits are c1..c6
+	ALU(x=Dout, y=mux2res, zx=instruction[11] ,nx=instruction[10] , zy=instruction[9],
+	      ny=instruction[8] , f=instruction[7] , no=instruction[6] ,
+	      zr=iszero, ng=isneg, out=aluout, out=outM);
+	      
 	// if leftmost bit of instruction is 0, write instruction to A.
 	// mux1res is the result of the left mux in the Figure 5.9. mux2res is the right one.
-	Mux16Way(a=instruction, b=aluout, sel=instruction[15], out=mux1res); 
-	Mux16Way(a=Aout, b=inM, sel=instruction[12], out=mux2res);
-
-	And(a=instruction[4], b=instruction[15], out=loadD);
-	And(a=instruction[5], b=instruction[15], out=loadA);
-	
-	Register(in=mux1res, load=loadA, out=Aout, out=addressM); // A register
-	Register(in=aluout, load=loadD, out=Dout); // D register
-	
+	Mux16(a=instruction, b=aluout, sel=instruction[15], out=mux1res); 
+	Mux16(a=Aout, b=inM, sel=instruction[12], out=mux2res);
+    
 	// PC & Jump handling
-	Or(a=instruction[0], b=instruction[1], out=tmpor);
-	Or(a=tmpor, b=instruction[2], out=jmp);
-	PC(in=Aout, load=jmp, inc=true, reset=reset, out=pc);
+	And(a=isneg, b=instruction[2], out=jmp1);
+	And(a=iszero, b=instruction[1], out=jmp2);
 	
+	Or(a=isneg, b=iszero, out=tmpIspos);
+	Not(in=tmpIspos, out=ispos);
+	And(a=ispos, b=instruction[0], out=jmp3);
 	
+	Or(a=jmp1, b=jmp2, out=tmpor);
+	Or(a=tmpor, b=jmp3, out=tmpJmp);
 	
+	And(a=tmpJmp, b=instruction[15], out=jmp);
+	PC(in=Aout, load=jmp, inc=true, reset=reset, out[0..14]=pc);
 	
-	
-	
+	// Change writeM
+	And(a=instruction[3], b=instruction[15], out=writeM);
 }
