@@ -12,7 +12,7 @@ BAD_FILE = "Problem reading from file or writing to file"
 CODE_SUCCESS = 0
 CODE_FAILURE = -1
 
-HACK_EXTENTION = ".hack"
+HACK_EXTENSION = ".hack"
 ASM_EXTENSION = ".asm"
 
 # Hack prefixes etc
@@ -201,12 +201,12 @@ def get_hack_filename(asm_filename):
     """
     Gets an input filename and returns the output Hack filename.
     """
-    return ''.join(asm_filename.split('.')[:-1]) + HACK_EXTENTION
+    return ''.join(asm_filename.split('.')[:-1]) + HACK_EXTENSION
 
 def main(path):
 	if os.path.isdir(path):
 		for filename in os.listdir(path):
-			if filename.endswith(ASM_EXTENTION):
+			if filename.endswith(ASM_EXTENSION):
 				handle_file(filename)
 	else:
 		handle_file(path)
