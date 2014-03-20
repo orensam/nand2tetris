@@ -207,7 +207,7 @@ def main(path):
 	if os.path.isdir(path):
 		for filename in os.listdir(path):
 			if filename.endswith(ASM_EXTENSION):
-				handle_file(filename)
+				handle_file(path + "/" + filename)
 	else:
 		handle_file(path)
     
