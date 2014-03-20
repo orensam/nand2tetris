@@ -1,3 +1,1 @@
-# Makefile
-all: Assembler
-	chmod +x Assembler
+# Empty makefile - python program
