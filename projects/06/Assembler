@@ -93,7 +93,7 @@ class Parser(object):
             # Remove comments
             split_line = line.split(COMMENT_PREFIX)
             # Remove spaces
-            clean_line = split_line[0].strip()
+            clean_line = split_line[0].replace(' ','')
             if clean_line:
                 # Add line only if it is an actual program line.
                 new_lines.append(clean_line)

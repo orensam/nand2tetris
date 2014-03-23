@@ -1,1 +1,1 @@
-# Empty makefile - python program
+# Empty makefile - Python program
