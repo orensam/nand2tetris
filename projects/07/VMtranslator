@@ -4,7 +4,7 @@ from sys import argv
 import os
 
 # Messages
-USAGE_MSG = "Usage: {0} <filename.vm>"
+USAGE_MSG = "Usage: {0} <filename.vm or directory>"
 BAD_INPUT = "Invalid program. Terminating compilation"
 BAD_FILE = "Problem reading from file or writing to file"
 
@@ -14,6 +14,9 @@ CODE_FAILURE = -1
 
 VM_EXTENSION = ".vm"
 ASM_EXTENSION = ".asm"
+
+# Special indicators
+COMMENT_PREFIX = "//"
 
 # Stack Commands
 C_ST_PUSH = "push"
@@ -216,10 +219,6 @@ M=M-1
 M=D
 """
 
-########
-
-COMMENT_PREFIX = "//"
-
 class Parser(object):
     """
     This class is built in order to perform the whole assembly process.
@@ -229,27 +228,28 @@ class Parser(object):
     
     def __init__(self):
         self.jump_counter = 0        
-
-    def parse(self, filename, text):        
+    
+	def parse(self, file_list):
         """
         Main function of the parser.
-        Receives raw text of a VM program, and returns its asm translation.
+        Receives list of tuples (<filename, file content>), and returns its asm translation.
         """
         
         # Init program string
         result = PROG_INIT
         
-        # Preliminary handling of input lines
-        lines = text.splitlines()
-        lines = self.clean_lines(lines)
+		for i in xrange(len(file_list)):
+			# Preliminary handling of input lines
+			filename, text = file_list[i]
+			lines = text.splitlines()
+			lines = self.clean_lines(lines)
 
-        # Parse lines
-        for line in lines:
-            result += self.parse_line(line, filename)
+			# Parse lines
+			for line in lines:
+				result += self.parse_line(line, filename)
         
         # Return the ready program code
-        return result
-    
+        return result		
        
     def clean_lines(self, lines):
         """
@@ -318,47 +318,55 @@ class Parser(object):
             self.jump_counter += 1
             return OP_COMP.format(self.jump_counter, OP_COMP_DICT[line])
                                             
-def get_asm_filename(vm_filename):
+def asm_filename_from_filename(vm_filename):
     """
-    Gets an input filename and returns the output Hack filename.
+    Gets an input filename and returns the output ASM filename.
     """
-    return "{0}.{1}".format(os.path.splitext(vm_filename)[0], ASM_EXTENSION)
+    return os.path.splitext(vm_filename)[0] + ASM_EXTENSION
 
-def main(path):
-	if os.path.isdir(path):
-		for filename in os.listdir(path):
-			if filename.endswith(VM_EXTENSION):
-				handle_file(path + "/" + filename)
-	else:
-		handle_file(path)
-    
-def handle_file(vm_filename):
+def asm_filename_from_dirname(dirname):
     """
+    Gets an input directory name and returns the output ASM filename.
+    """
+	abspath = os.path.abspath(dirname)
+	fn = os.path.basename(abspath) + ASM_EXTENSION
+	return "{0}/{1}".format(abspath, fn)
+	
+def get_file_clean_name(fn):
+	return os.path.splitext(os.path.basename(fn))[0]
+	  
+def main(path):
+	"""
     Main program - compiles the given file,
     and saves the output to a Hack file.
-    """
-    
+    """    
     parser = Parser()
     
-    # Open input file and handle file errors
-    try:
-        text = open(vm_filename).read()
-    except OSError:
-        raise
+	if os.path.isfile(path):
+		# Handle single file
+		file_list = [(get_file_clean_name(path), open(path).read())]
+		asm_filename = asm_filename_from_filename(path)
+	else
+		# Handle directory
+		try:
+			file_list = [(get_file_clean_name(fn), open(fn).read()) 
+						  for fn in os.listdir(path) if fn.endswith(VM_EXTENSION)]
+		except OSError:
+			raise
+		asm_filename = asm_filename_from_dirname(path)
     
     # Compile file content and handle compilation errors
     try:
-        asm_program = parser.parse(os.path.basename(vm_filename).split('.')[0], text)        
+        asm_program = parser.parse(file_list)        
     except:
         raise Exception(BAD_INPUT)        
     
     # Write to Hack file and handle file errors.
-    asm_filename = get_asm_filename(vm_filename)
     try:
         open(asm_filename, 'w').write(asm_program)
     except OSError:
         raise
-            
+		
 def usage():
     """
     Prints a usage message to the user.
