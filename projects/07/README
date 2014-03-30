@@ -1,0 +1,32 @@
+romig, orensam
+===============================================================================
+Romi Gelman, ID 302170089, romi.gelman@mail.huji.ac.il
+Oren Samuel, ID 200170694, oren.samuel@mail.huji.ac.il
+===============================================================================
+
+               Project 07 - Virtual Machine I - Stack Arithmetic
+               -------------------------------------------------
+
+Submitted Files
+---------------
+
+VMtranslator - 
+
+    A Python program which receives a VM file (or directory of such files) 
+    as a command line argument, and saves a .asm file(s) (with the same base filename)
+    which contains the translated ASM program.
+
+    The program iterates over all the program's lines, and translates them into
+    the needed ASM code segments.
+
+    Most of the commands were explicitly translated according to the required code
+    sequences, built according to our experience with the ASM language from past projects,
+    and the VM language structure specified in chapter 7.
+
+Makefile - Empty (Python program)
+
+README - This file.
+
+Remarks
+-------
+None.
