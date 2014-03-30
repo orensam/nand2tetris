@@ -121,22 +121,22 @@ M=M-1
 A=M
 
 D=M-D
-@TRUE{0}
-D;{1}
+@TRUE.{0}.{1}
+D;{2}
 
-(FALSE{0})
+(FALSE.{0}.{1})
 @SP
 A=M
 M=0
-@CONT{0}
+@CONT.{0}.{1}
 0;JMP
 
-(TRUE{0})
+(TRUE.{0}.{1})
 @SP
 A=M
 M=-1
 
-(CONT{0})
+(CONT.{0}.{1})
 @SP
 M=M+1
 """
@@ -229,27 +229,25 @@ class Parser(object):
     def __init__(self):
         self.jump_counter = 0        
     
-	def parse(self, file_list):
+    def parse(self, file_list):
         """
         Main function of the parser.
         Receives list of tuples (<filename, file content>), and returns its asm translation.
-        """
-        
+        """        
         # Init program string
         result = PROG_INIT
-        
-		for i in xrange(len(file_list)):
-			# Preliminary handling of input lines
-			filename, text = file_list[i]
-			lines = text.splitlines()
-			lines = self.clean_lines(lines)
+        for i in range(len(file_list)):
+            # Preliminary handling of input lines
+            filename, text = file_list[i]
+            lines = text.splitlines()
+            lines = self.clean_lines(lines)
 
-			# Parse lines
-			for line in lines:
-				result += self.parse_line(line, filename)
+            # Parse lines
+            for line in lines:
+                result += self.parse_line(line, filename)
         
         # Return the ready program code
-        return result		
+        return result       
        
     def clean_lines(self, lines):
         """
@@ -316,7 +314,7 @@ class Parser(object):
         elif line in C_ST_COMP_LIST:
             # Comparison (eq/gt/lt)
             self.jump_counter += 1
-            return OP_COMP.format(self.jump_counter, OP_COMP_DICT[line])
+            return OP_COMP.format(filename, self.jump_counter, OP_COMP_DICT[line])
                                             
 def asm_filename_from_filename(vm_filename):
     """
@@ -328,32 +326,32 @@ def asm_filename_from_dirname(dirname):
     """
     Gets an input directory name and returns the output ASM filename.
     """
-	abspath = os.path.abspath(dirname)
-	fn = os.path.basename(abspath) + ASM_EXTENSION
-	return "{0}/{1}".format(abspath, fn)
-	
+    abspath = os.path.abspath(dirname)
+    fn = os.path.basename(abspath) + ASM_EXTENSION
+    return "{0}/{1}".format(abspath, fn)
+    
 def get_file_clean_name(fn):
-	return os.path.splitext(os.path.basename(fn))[0]
-	  
+    return os.path.splitext(os.path.basename(fn))[0]
+      
 def main(path):
-	"""
+    """
     Main program - compiles the given file,
     and saves the output to a Hack file.
     """    
     parser = Parser()
     
-	if os.path.isfile(path):
-		# Handle single file
-		file_list = [(get_file_clean_name(path), open(path).read())]
-		asm_filename = asm_filename_from_filename(path)
-	else
-		# Handle directory
-		try:
-			file_list = [(get_file_clean_name(fn), open(fn).read()) 
-						  for fn in os.listdir(path) if fn.endswith(VM_EXTENSION)]
-		except OSError:
-			raise
-		asm_filename = asm_filename_from_dirname(path)
+    if os.path.isfile(path):
+        # Handle single file
+        file_list = [(get_file_clean_name(path), open(path).read())]
+        asm_filename = asm_filename_from_filename(path)
+    else:
+        # Handle directory
+        try:            
+            file_list = [(get_file_clean_name(fn), open("{0}/{1}".format(os.path.abspath(path), fn)).read()) 
+                          for fn in os.listdir(path) if fn.endswith(VM_EXTENSION)]
+        except OSError:
+            raise
+        asm_filename = asm_filename_from_dirname(path)
     
     # Compile file content and handle compilation errors
     try:
@@ -366,7 +364,7 @@ def main(path):
         open(asm_filename, 'w').write(asm_program)
     except OSError:
         raise
-		
+        
 def usage():
     """
     Prints a usage message to the user.
