@@ -29,4 +29,16 @@ README - This file.
 
 Remarks
 -------
-None.
+To handle eq,lt,gt commands - 
+In order to implement those, we had to use jumps to sections that fill the appropriate
+truth value in the stack.
+Since this involved subtracting two numbers, we had to handle the possibility of
+integer overflow (i.e subtracting two numbers where the result would be
+greater that 32767 or less than -32767).
+To handle this issue, we separated the jump cases to the case where the two numbers
+have the same sign (which means you can safely subtract them), and the case where
+they have different signs, in which case we can check only the first number.
+We used R13 and R14 as temporary variables to hold the numbers that are currently
+at the top of the stack.
+
+
