@@ -1,0 +1,129 @@
+/**
+ * Implements a graphic link (circle). Has a screen location
+ * and a radius. It also has methods for drawing, erasing, moving on the 
+ * screen.
+ */
+class SnakeLink {
+
+    // Location on the screen
+    field int x, y;
+    field int direction; // 1 up, 2 down, 3 left, 4 right
+
+    // The size of the link
+    field int rad;
+
+    /** Constructs a new link with a given location and size. */
+    constructor SnakeLink new(int Ax, int Ay, int Arad, int Adirection) {
+        let x = Ax;
+        let y = Ay;
+        let rad = Arad;
+        let direction = Adirection;
+        do draw();
+
+        return this;
+    }
+
+    /** Deallocates the object's memory. */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /** Draws the link on the screen. */
+    method void draw() {
+        do Screen.setColor(true);
+        do Screen.drawCircle(x, y, rad);
+        return;
+    }
+
+    /** Erases the link from the screen. */
+    method void erase() {
+        do Screen.setColor(false);
+        do Screen.drawCircle(x, y, rad);
+        return;
+    }
+
+    /** Moves up by 2 pixels. */
+    method void moveUp() {
+        if (y > 10) {
+            do Screen.setColor(false);
+            do Screen.drawCircle(x, y, rad);
+            let y = y - 10;
+            do Screen.setColor(true);
+            do Screen.drawCircle(x, y, rad);        }
+            
+        return;
+    }
+
+    /** Moves down by 2 pixels. */
+    method void moveDown() {
+        if ((y + rad) < 240) {
+            do Screen.setColor(false);
+            do Screen.drawCircle(x, y, rad);
+            let y = y + 10;
+            do Screen.setColor(true);
+            do Screen.drawCircle(x, y, rad);
+        }
+        return;
+    }
+
+    /** Moves left by 2 pixels. */
+    method void moveLeft() {
+        if (x > 10) {
+            do Screen.setColor(false);
+            do Screen.drawCircle(x, y, rad);
+            let x = x - 10;
+            do Screen.setColor(true);
+            do Screen.drawCircle(x, y, rad);
+        }
+        return;
+    }
+
+    /** Moves right by 2 pixels. */
+    method void moveRight() {
+        if ((x + rad) < 480) {
+            do Screen.setColor(false);
+            do Screen.drawCircle(x, y, rad);
+            let x = x + 10;
+            do Screen.setColor(true);
+            do Screen.drawCircle(x, y, rad);
+        }
+        return;
+    }
+    
+    method void move(){
+        
+        //do Output.printString("Moving somewhere...");
+        //do Output.printInt(direction);
+        
+        if (direction = 1)
+        {
+            do moveUp();
+        }
+        if (direction = 2)
+        {
+            do moveDown();
+        }
+        if (direction = 3)
+        {
+            do moveLeft();
+        }
+        if (direction = 4)
+        {
+            do moveRight();
+        }
+        
+        return;
+    }
+    
+    method int getDirection()
+    {
+        return direction;
+    }
+    
+    method void setDirection(int Adirection)
+    {
+        let direction = Adirection;
+        return;
+    }
+}

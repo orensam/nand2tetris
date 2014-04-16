@@ -1,0 +1,93 @@
+class Snake {
+
+    field Array links;
+    field int maxlen;
+    field int curlen;
+    field int rad;
+    
+        
+    constructor Snake new(int Alen)
+    {
+        let rad = 5;
+        let curlen = 5;
+        let maxlen = Alen;
+        let links = Array.new(maxlen);
+        do buildHead();        
+        do draw();
+        return this;
+    } 
+    
+    method void buildHead()
+    {
+        var int startx, starty, startdir, i;
+        let startx = 10;
+        let starty = 10;
+        let startdir = 4;   
+        let i=0;
+        
+        while (i < curlen)
+        {
+            let links[i] = SnakeLink.new(startx + i * 7 , starty, rad, startdir);
+            let i = i + 1; 
+        }
+        return;
+    }
+    
+    method void move(int direction)
+    {
+        var int i, prevDir;
+        var SnakeLink t1;
+        var SnakeLink t2;
+        let i = 0;
+        //do Output.printString("Curlen: ");
+        //do Output.printInt(curlen);
+        
+        while(i < (curlen-1))
+        {  
+            let t1 = links[i];
+            let t2 = links[i+1];
+            let prevDir = t2.getDirection();
+            do t1.setDirection(prevDir);     
+            //do Output.printInt(i);
+            //do Output.printString("Direction: ");
+            //do Output.printInt(prevDir);                  
+            
+            let i = i+1;
+        }
+        
+        let t1 = links[curlen-1];
+        if (direction > 0)
+        {
+            do t1.setDirection(direction);
+        }
+        
+        let i=0;
+        while (i<curlen)
+        {
+            let t1 = links[i];
+            do t1.move();
+            let i = i + 1;
+        }
+        
+        do draw();
+        do Sys.wait(100); // Delays the next movement.
+        return;
+    }
+    
+    method void draw()
+    {
+        var SnakeLink t;
+        var int i;
+        let i = 0;
+        while (i < curlen) 
+        {        
+            let t = links[i];
+            do t.draw();
+            let i = i + 1;
+        }
+        return;
+    }
+
+
+
+}

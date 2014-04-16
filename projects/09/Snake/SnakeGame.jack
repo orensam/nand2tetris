@@ -1,0 +1,50 @@
+class SnakeGame
+{
+    field Snake snake;
+    constructor SnakeGame new()
+    {
+        let snake = Snake.new(10);
+        return this;
+    }
+    
+    method void run() {
+        var char key;
+        var int direction;
+        var boolean exit;
+    
+        let exit = false;
+    
+        while (~exit) {
+            // waits for a key to be pressed.
+            while (key = 0) {
+                let key = Keyboard.keyPressed();
+                do snake.move(0);
+            }
+    
+            if (key = 81) {
+                let exit = true;
+            }
+            if (key = 131) {
+                let direction = 1;
+            }
+            if (key = 133) {
+                let direction = 2;
+            }
+            if (key = 130) {
+                let direction = 3;
+            }
+            if (key = 132) {
+                let direction = 4;
+            }
+    
+            // waits for the key to be released.
+            while (~(key = 0)) {
+                let key = Keyboard.keyPressed();
+                do snake.move(direction);
+            }
+        }
+        
+        return;
+
+    }
+}
