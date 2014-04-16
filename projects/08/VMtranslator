@@ -78,6 +78,7 @@ C_IFGOTO = "if-goto"
 C_FUNC = "function"
 C_CALL = "call"
 C_RETURN = "return"
+PROG_BOOTSTRAP_LINE = "call Sys.init 0"
 
 # ASM code strings
 PROG_INIT = """
@@ -85,6 +86,11 @@ PROG_INIT = """
 D=A
 @SP
 M=D
+"""
+
+PROG_INIT_DIR = """
+@Sys.init
+0; JMP
 """
 
 OP_BINARY = """
@@ -323,14 +329,15 @@ class Parser(object):
         Main function of the parser.
         Receives list of tuples (<filename, file content>), and returns its asm translation.
         """        
-        # Init program string
+        # Init program string        
         result = PROG_INIT
+
         for i in range(len(file_list)):
             # Preliminary handling of input lines
             filename, text = file_list[i]
-            print("parsing file: " + filename)
             lines = text.splitlines()
             lines = self.clean_lines(lines)
+            lines = [PROG_BOOTSTRAP_LINE] + lines
 
             # Parse lines
             for line in lines:
@@ -359,7 +366,6 @@ class Parser(object):
         """
         Translates a single VM code line to an ASM code segment
         """        
-        print("parsing line: " + line)
         if line.startswith(C_PUSH_CONSTANT):
             # push constant x
             return OP_PUSH_CONST_HEADER.format(line.split()[-1]) + "\n" + OP_PUSH_SEGMENT_FOOTER
@@ -420,23 +426,13 @@ class Parser(object):
             return OP_IFGOTO.format(label)
         
         elif line.startswith(C_FUNC):
-
             name = line.split()[1]
             nargs = int(line.split()[2])
             s = ""
-            s += OP_LABEL.format(name)
-            
-            t = """
-            @{0}
-            D=A
-            @LCL
-            A=M+D
-            M=0
-            """
-            
-            s += '\n'.join([t.format(i) for i in range(nargs)])
-#            s += '\n'.join([OP_PUSH_CONST_HEADER.format(0) + OP_PUSH_SEGMENT_FOOTER for i in range(nargs)]) # Push 0 <nargs> times into stack
-#            s += '\n'.join([OP_POP_SEGMENT_HEADER.format(i, SEGMENTS[SEG_LCL]) + OP_POP_SEGMENT_FOOTER for i in range(nargs)]) # Pop <nargs> zeroes into LCL
+            s += OP_LABEL.format(name)            
+
+            # Function declaration - push <nargs> zeros
+            s += '\n'.join([OP_PUSH_CONST_HEADER.format(0) + OP_PUSH_SEGMENT_FOOTER for i in range(nargs)])
             return s
             
         elif line.startswith(C_CALL):
@@ -448,15 +444,21 @@ class Parser(object):
             # lines 1-5
             s=""
             
-            to_push = [ret_label, SEGMENTS[SEG_LCL], SEGMENTS[SEG_ARG], SEGMENTS[SEG_THIS], SEGMENTS[SEG_THAT]]
-            to_push_place = ["A", "M", "M", "M", "M"]
+            to_push = [ret_label, SEGMENTS[SEG_LCL], SEGMENTS[SEG_ARG], SEGMENTS[SEG_THIS], SEGMENTS[SEG_THAT]]            
+            s += OP_PUSH_CONST_HEADER.format(ret_label) + OP_PUSH_SEGMENT_FOOTER # push return-label
             
+            t = """
+            @{0}
+            D=M            
+            """
             
+            s += '\n'.join([t.format(to_push[i+1]) + OP_PUSH_SEGMENT_FOOTER for i in range(4)]) # push return-label
+                       
             t = """
             @{0}
             D=A
             @ARG
-            D=D+A
+            D=D+M
             @tmpvar
             M=D
 
@@ -465,12 +467,7 @@ class Parser(object):
             @tmpvar
             A=M
             M=D            
-            """
-            
-            s += '\n'.join([t.format(nargs+i, to_push[i], to_push_place[i]) for i in range(5)])
-#            for i in range(5):             
-#                s+=OP_PUSH_CONST_HEADER.format(to_push[i]) +  OP_PUSH_SEGMENT_FOOTER
-#                s+=OP_POP_SEGMENT_HEADER.format(nargs + i, SEGMENTS[SEG_ARG]) + OP_POP_SEGMENT_FOOTER
+            """ 
                 
             # line 6
             s += """
@@ -499,6 +496,7 @@ class Parser(object):
             
             s = ""
             
+            # line 1
             s += """
             @LCL
             D=M
@@ -506,6 +504,7 @@ class Parser(object):
             M=D
             """
             
+            # line 2
             s += """
             @5
             D=D-A
@@ -515,8 +514,10 @@ class Parser(object):
             M=D                                           
             """
             
+            # line 3
             s += OP_POP_SEGMENT_HEADER.format(0, SEGMENTS[SEG_ARG]) + OP_POP_SEGMENT_FOOTER
             
+            # line 4
             s += """
             @ARG
             D=M+1
@@ -544,8 +545,7 @@ class Parser(object):
             @RET
             A=M
             0;JMP
-            """        
-            
+            """                    
             return s
 
                                             
