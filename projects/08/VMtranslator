@@ -445,7 +445,7 @@ class Parser(object):
             nargs = int(line.split()[2])
             self.current_func = name
             s = ""
-            s += OP_LABEL.format(FUNC_FORMAT.format(filename, name))
+            s += OP_LABEL.format(name)
 
             # Function declaration - push <nargs> zeros
             s += '\n'.join([OP_PUSH_CONST_HEADER.format(0) + OP_PUSH_SEGMENT_FOOTER for i in range(nargs)])
@@ -454,7 +454,7 @@ class Parser(object):
         elif line.startswith(C_CALL):
             name = line.split()[1]
             nargs = int(line.split()[2])
-            ret_label = "{0}.{1}.return.{2}".format(filename, name, self.func_call_counter)
+            ret_label = "{0}.return.{1}".format(name, self.func_call_counter)
             self.func_call_counter += 1
             
             # lines 1-5
