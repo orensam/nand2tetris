@@ -280,9 +280,17 @@ M=M-1
 M=D
 """
 
+#OP_LABEL = """
+#({0})
+#"""
+
+LABEL_FORMAT = """
+{0}.{1}.{2}
+"""
+
 OP_LABEL = """
 ({0})
-"""
+""".format(LABEL_FORMAT)
 
 OP_GOTO = """
 @{0}
@@ -323,6 +331,7 @@ class Parser(object):
     def __init__(self):
         self.jump_counter = 0        
         self.func_call_counter = 0
+        self.current_func = ""        
     
     def parse(self, file_list):
         """
@@ -331,17 +340,18 @@ class Parser(object):
         """        
         # Init program string        
         result = PROG_INIT
-
+        
+        result += self.parse_line(PROG_BOOTSTRAP_LINE, "")
+        
         for i in range(len(file_list)):
             # Preliminary handling of input lines
             filename, text = file_list[i]
             lines = text.splitlines()
             lines = self.clean_lines(lines)
-            lines = [PROG_BOOTSTRAP_LINE] + lines
 
             # Parse lines
             for line in lines:
-                result += "// " + line + "\n" + self.parse_line(line, filename)
+                result += self.parse_line(line, filename)
         
         # Return the ready program code
         return result       
@@ -415,19 +425,20 @@ class Parser(object):
 
         elif line.startswith(C_LABEL):
             label = line.split()[-1]
-            return OP_LABEL.format(label)
+            return OP_LABEL.format(filename, self.current_func, label)
         
         elif line.startswith(C_GOTO):
             label = line.split()[-1]    
-            return OP_GOTO.format(label)
+            return OP_GOTO.format(LABEL_FORMAT.format(filename, self.current_func, label))
             
         elif line.startswith(C_IFGOTO):
             label = line.split()[-1]    
-            return OP_IFGOTO.format(label)
+            return OP_IFGOTO.format(LABEL_FORMAT.format(filename, self.current_func, label))
         
         elif line.startswith(C_FUNC):
             name = line.split()[1]
             nargs = int(line.split()[2])
+            self.current_func = name
             s = ""
             s += OP_LABEL.format(name)            
 
