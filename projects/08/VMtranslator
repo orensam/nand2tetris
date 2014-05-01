@@ -280,21 +280,21 @@ M=M-1
 M=D
 """
 
-#OP_LABEL = """
-#({0})
-#"""
-
-LABEL_FORMAT = """
-{0}.{1}.{2}
-"""
-
 OP_LABEL = """
 ({0})
-""".format(LABEL_FORMAT)
-
-OP_FUNC = """
-({0}.{1})
 """
+
+LABEL_FORMAT = "{0}.{1}.{2}"
+
+FUNC_FORMAT = "{0}.{1}"
+
+#OP_LABEL_ = """
+#({0})
+#""".format(LABEL_FORMAT)
+
+#OP_FUNC = """
+#({0}.{1})
+#"""
 
 OP_GOTO = """
 @{0}
@@ -345,7 +345,7 @@ class Parser(object):
         # Init program string        
         result = PROG_INIT
         
-        result += self.parse_line(PROG_BOOTSTRAP_LINE, "Default")
+        result += self.parse_line(PROG_BOOTSTRAP_LINE, "")
         
         for i in range(len(file_list)):
             # Preliminary handling of input lines
@@ -355,6 +355,7 @@ class Parser(object):
 
             # Parse lines
             for line in lines:
+                print ("parsing line: " + line)
                 result += self.parse_line(line, filename)
         
         # Return the ready program code
@@ -429,7 +430,7 @@ class Parser(object):
 
         elif line.startswith(C_LABEL):
             label = line.split()[-1]
-            return OP_LABEL.format(filename, self.current_func, label)
+            return OP_LABEL.format(LABEL_FORMAT.format(filename, self.current_func, label))
         
         elif line.startswith(C_GOTO):
             label = line.split()[-1]    
@@ -444,7 +445,7 @@ class Parser(object):
             nargs = int(line.split()[2])
             self.current_func = name
             s = ""
-            s += OP_FUNC.format(filename, name)            
+            s += OP_LABEL.format(FUNC_FORMAT.format(filename, name))
 
             # Function declaration - push <nargs> zeros
             s += '\n'.join([OP_PUSH_CONST_HEADER.format(0) + OP_PUSH_SEGMENT_FOOTER for i in range(nargs)])
@@ -504,7 +505,7 @@ class Parser(object):
             
             s+=OP_GOTO.format(name)
             
-            s+="({0})".format(ret_label)
+            s+=OP_LABEL.format(ret_label)
             return s
 
         elif line.startswith(C_RETURN):               
