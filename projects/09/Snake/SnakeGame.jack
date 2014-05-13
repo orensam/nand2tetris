@@ -3,25 +3,38 @@ class SnakeGame
     field Snake snake;
     constructor SnakeGame new()
     {
-        let snake = Snake.new(10);
+        let snake = Snake.new(30);
         return this;
+    }
+    
+    /** Deallocates the object's memory. */
+    method void dispose() {
+        do snake.dispose();
+        do Memory.deAlloc(this);
+        return;
     }
     
     method void run() {
         var char key;
         var int direction;
         var boolean exit;
+        var bool moved;
     
         let exit = false;
     
-        while (~exit) {
+        while(~exit) {
             // waits for a key to be pressed.
             while (key = 0) {
                 let key = Keyboard.keyPressed();
-                do snake.move(0);
+                let moved = snake.move(0);
+                if (~moved)
+                {
+                    let exit = true;
+                    return;
+                }
             }
     
-            if (key = 81) {
+            if(key = 81) {
                 let exit = true;
             }
             if (key = 131) {
@@ -40,7 +53,11 @@ class SnakeGame
             // waits for the key to be released.
             while (~(key = 0)) {
                 let key = Keyboard.keyPressed();
-                do snake.move(direction);
+                let moved = snake.move(direction);
+                if (~moved)
+                {
+                    let exit = true;
+                }
             }
         }
         

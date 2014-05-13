@@ -4,63 +4,138 @@ class Snake {
     field int maxlen;
     field int curlen;
     field int rad;
+    field int foodRad;
+    field int foodx;
+    field int foody;
     
+    field int seedx;
+    field int seedy;
+    field int randA;
+    field int randB;
         
     constructor Snake new(int Alen)
     {
         let rad = 5;
+        let foodRad = 5;
         let curlen = 5;
         let maxlen = Alen;
+        
         let links = Array.new(maxlen);
         do buildHead();        
         do draw();
+
+        let foodx = 100;
+        let foody = 100;
+        let seedx = 30;
+        let seedy = 50;
+        let randA = 10;
+        let randB = 20;
+        
+        do drawFood();
+
         return this;
     } 
+    
+    /** Deallocates the object's memory. */
+    method void dispose() {
+        var int i;
+        var SnakeLink t;
+        let i = 0;
+        
+        while (i < curlen)
+        {
+            let t = links[i];
+            do t.dispose();
+            let i = i+1;
+        }
+        do Memory.deAlloc(links);
+        do Memory.deAlloc(this);
+        return;
+    }
     
     method void buildHead()
     {
         var int startx, starty, startdir, i;
-        let startx = 10;
-        let starty = 10;
+        let startx = 20;
+        let starty = 20;
         let startdir = 4;   
         let i=0;
         
         while (i < curlen)
         {
-            let links[i] = SnakeLink.new(startx + i * 7 , starty, rad, startdir);
+            let links[i] = SnakeLink.new(startx + i * rad * 2 , starty, rad, startdir);
             let i = i + 1; 
         }
         return;
     }
     
-    method void move(int direction)
+    method bool isDirectionValid(int curDir, int newDir)
+    {
+        if (newDir = 0)
+        {
+            return true;
+        }
+        if (curDir = newDir)
+        {
+            return false;
+        }
+        if ( (curDir + newDir) = 3)
+        {
+            return false;
+        }
+        if ((curDir + newDir) = 7)
+        {
+            return false;
+        }
+        return true;
+    }
+    method bool move(int direction)
     {
         var int i, prevDir;
+        var SnakeLink head;
         var SnakeLink t1;
         var SnakeLink t2;
-        let i = 0;
-        //do Output.printString("Curlen: ");
-        //do Output.printInt(curlen);
+        var int headDir;
+        var int headx;
+        var int heady;
+        var bool valid;
+        var bool gameover;
+        var bool eaten;
         
+        let gameover = checkGameover();
+        if (gameover)
+        {
+         return false;
+        }
+        
+        let i = 0;
+        
+        let head = links[curlen-1];
+        let headDir = head.getDirection();
+        
+        let valid = isDirectionValid(headDir, direction); 
+        if (~valid)
+        {
+            return true;
+        } 
+
         while(i < (curlen-1))
         {  
             let t1 = links[i];
             let t2 = links[i+1];
             let prevDir = t2.getDirection();
+            
             do t1.setDirection(prevDir);     
-            //do Output.printInt(i);
-            //do Output.printString("Direction: ");
-            //do Output.printInt(prevDir);                  
             
             let i = i+1;
         }
         
-        let t1 = links[curlen-1];
+        
         if (direction > 0)
         {
-            do t1.setDirection(direction);
+            do head.setDirection(direction);
         }
-        
+
         let i=0;
         while (i<curlen)
         {
@@ -69,10 +144,130 @@ class Snake {
             let i = i + 1;
         }
         
+        let headx = head.getx();
+        let heady = head.gety();
+        
+        if ((headx < foodx + rad) & (headx > foodx - rad) & (heady > foody - rad) & (heady < foody + rad))
+        {
+            let headDir = head.getDirection();
+            let eaten = eat(headDir, headx, heady);
+            if (~eaten)
+            {
+                    do Screen.clearScreen();
+                    do Output.moveCursor(10, 10);
+                    do Output.printString("YOU WIN!!!");
+                    return false;
+            }
+        }
+        
         do draw();
+        
         do Sys.wait(100); // Delays the next movement.
+        return true;
+    }
+    
+    method bool checkGameover()
+    {
+        var SnakeLink head;
+        var int headx;
+        var int heady;
+        
+        let head = links[curlen -1];
+        let headx = head.getx();
+        let heady = head.gety();
+        
+        if ((headx < 15) | (headx > 496) | (heady < 15) | (heady > 245))
+        {
+            do Screen.clearScreen();
+            do Output.moveCursor(10, 10);
+            do Output.printString("YOU LOSE!!!");
+            
+            return true;
+        }
+        return false;
+    }
+    
+    method bool eat(int headDirection, int headx, int heady)
+    {
+        var int x;
+        var int y;
+        var SnakeLink head;
+        
+        do clearFood();
+        
+        if (curlen < maxlen)
+        {
+                       
+            if (headDirection = 1)
+            {  
+                let links[curlen] = SnakeLink.new(headx , heady - (rad*2), rad, headDirection);
+            }
+            
+            if (headDirection = 2)
+            {
+                let links[curlen] = SnakeLink.new(headx , heady + (rad*2), rad, headDirection);
+            }
+            
+            if (headDirection = 3)
+            {
+                let links[curlen] = SnakeLink.new(headx - (2*rad) , heady, rad, headDirection);
+            }
+            
+            if (headDirection = 4)
+            {
+                let links[curlen] = SnakeLink.new(headx + (2*rad) , heady, rad, headDirection);
+            }
+            
+            let curlen = curlen + 1;
+        }
+        else
+        {
+            return false;
+        }
+        
+        do drawFood();
+        
+        return true;
+        
+    }
+    
+    method void drawFood()
+    {
+        var int tempx;
+        var int tempy;
+
+        let tempx = randA * seedx + randB;
+        let foodx = tempx - ((tempx / 480) * 480);
+        
+        let seedx = foodx;
+
+        let tempy = randA * seedy + randB;
+        let foody = tempy - ((tempy / 240) * 240);
+        
+        let seedy = foody;
+        
+        do Screen.setColor(true);
+        do Screen.drawCircle(foodx, foody, foodRad);
+        
         return;
     }
+
+    method void unclearFood()
+    {
+        do Screen.setColor(true);
+        do Screen.drawCircle(foodx, foody, foodRad);
+        
+        return;
+    }
+    
+    method void clearFood()
+    {
+        do Screen.setColor(false);
+        do Screen.drawCircle(foodx, foody, foodRad);
+        
+        return;
+    }
+    
     
     method void draw()
     {

@@ -45,19 +45,19 @@ class SnakeLink {
 
     /** Moves up by 2 pixels. */
     method void moveUp() {
-        if (y > 10) {
+        if (y - rad > 10) {
             do Screen.setColor(false);
             do Screen.drawCircle(x, y, rad);
             let y = y - 10;
             do Screen.setColor(true);
-            do Screen.drawCircle(x, y, rad);        }
-            
+            do Screen.drawCircle(x, y, rad);        
+        }
         return;
     }
 
     /** Moves down by 2 pixels. */
     method void moveDown() {
-        if ((y + rad) < 240) {
+        if ((y + rad) < 250) {
             do Screen.setColor(false);
             do Screen.drawCircle(x, y, rad);
             let y = y + 10;
@@ -66,10 +66,10 @@ class SnakeLink {
         }
         return;
     }
-
+    
     /** Moves left by 2 pixels. */
     method void moveLeft() {
-        if (x > 10) {
+        if (x - rad > 10) {
             do Screen.setColor(false);
             do Screen.drawCircle(x, y, rad);
             let x = x - 10;
@@ -78,10 +78,10 @@ class SnakeLink {
         }
         return;
     }
-
+    
     /** Moves right by 2 pixels. */
     method void moveRight() {
-        if ((x + rad) < 480) {
+        if ((x + rad) < 501) {
             do Screen.setColor(false);
             do Screen.drawCircle(x, y, rad);
             let x = x + 10;
@@ -89,36 +89,45 @@ class SnakeLink {
             do Screen.drawCircle(x, y, rad);
         }
         return;
-    }
-    
-    method void move(){
+    }    
+    method bool move(){
         
         //do Output.printString("Moving somewhere...");
         //do Output.printInt(direction);
         
         if (direction = 1)
         {
-            do moveUp();
+            return moveUp();
         }
         if (direction = 2)
         {
-            do moveDown();
+            return moveDown();
         }
         if (direction = 3)
         {
-            do moveLeft();
+            return moveLeft();
         }
         if (direction = 4)
         {
-            do moveRight();
+            return moveRight();
         }
         
-        return;
+        return false;
     }
     
     method int getDirection()
     {
         return direction;
+    }
+    
+    method int getx()
+    {
+        return x;
+    }
+    
+    method int gety()
+    {
+        return y;
     }
     
     method void setDirection(int Adirection)
