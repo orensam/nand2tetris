@@ -1,0 +1,206 @@
+#!/usr/bin/env python3
+
+from sys import argv
+import os
+from lxml import etree
+import re
+
+
+# Messages
+USAGE_MSG = "Usage: {0} <filename.vm or directory>"
+BAD_INPUT = "Invalid program. Terminating compilation"
+BAD_FILE = "Problem reading from file or writing to file"
+
+# Exit codes
+CODE_SUCCESS = 0
+CODE_FAILURE = -1
+
+JACK_EXTENSION = ".jack"
+XML_EXTENSION = ".xml"
+
+COMMENT_PREFIX = "//"
+BIG_COMMENT_PREFIX = "/**"
+BIG_COMMENT_SUFFIX = "*/"   
+
+KEYWORDS = ('class', 'constructor', 'function', 'method', 'field', 'static',
+            'var', 'int', 'char', 'boolean', 'void', 'true', 'false', 'null', 'this',
+            'let', 'do', 'if', 'else', 'while', 'return')
+
+SYMBOLS = ('{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', '&', '|', '<', '>', '=', '~')
+
+
+
+
+
+class Tokenizer(object):
+    """
+    This class is built in order to perform the whole assembly process.
+    Contains functions that handle the different textual aspects of the asm code,
+    and converts them into the correct Hack bit codes.
+    """
+    
+    def __init__(self):
+        pass
+ 
+    
+    def tokenize(self, data):
+        """
+        Main function of the parser.
+        Receives list of tuples (<filename, file content>), and returns its asm translation.
+        """
+        lines = data.splitlines()
+        lines = self.remove_comment_lines(lines)
+        # no empty lines, no comment lines
+        
+        tree = self.lines_to_tokens(lines)
+        
+        return tree
+       
+    def remove_comment_lines(self, lines):
+        new_lines = []
+        for line in lines:
+            line = line.strip()
+            if not line or not line.startswith(COMMENT_PREFIX):
+                new_lines.append(line)
+        return new_lines
+    
+    def lines_to_tokens(self, lines):
+        tree = etree.Element('tokens')
+        is_big_comment = False
+        for line in lines:
+            
+            while line:                
+                print ("line is: " + line)
+                # Handle big comments
+                if line.startswith(BIG_COMMENT_PREFIX):
+                    is_big_comment = True                    
+                
+                if is_big_comment:
+                    idx = line.find(BIG_COMMENT_SUFFIX)
+                    if idx >= 0:
+                        line = line[idx+2:].strip() 
+                        is_big_comment = False
+                    else:
+                        line = ""
+                        
+                 # Handle strings
+                elif line.startswith('"'):
+                   idx = line.find('"', 1)
+                   self.add_child(tree, "stringConstant", line[1:idx])
+                   line = line[idx+1:].strip()
+                    
+                 # Handle regular comments
+                elif line.startswith(COMMENT_PREFIX):
+                    line = ""
+                    
+                else:
+                   found = re.findall('^\w+',line)
+                   if found:
+                       word = found[0]
+                       if word in KEYWORDS:
+                           self.add_child(tree, "keyword", word)
+                        
+                       elif word.isdigit():
+                           self.add_child(tree, "integerConstant", word)
+                       else:
+                           self.add_child(tree, "identifier", word)
+                        
+                       line = line[len(word):].strip()
+                    
+                   elif line.startswith(SYMBOLS):
+                       self.add_child(tree, 'symbol', line[0])
+                       line = line[1:].strip()
+
+        return tree
+                        
+    def add_child(self, father, child_type, child_text):
+        child = etree.Element(child_type)
+        child.text = " {0} ".format(child_text)
+        father.append(child)
+
+
+                                            
+def xml_filename_from_filename(jack_filename):
+    """
+    Gets an input filename and returns the output ASM filename.
+    """
+    return os.path.splitext(jack_filename)[0] + XML_EXTENSION
+
+def get_token_filename(fn):
+    return os.path.splitext(jack_filename)[0] + "T" + XML_EXTENSION
+    
+#def xml_filename_from_dirname(dirname):
+#    """
+#    Gets an input directory name and returns the output ASM filename.
+#    """
+#    abspath = os.path.abspath(dirname)
+#    fn = os.path.basename(abspath) + XML_EXTENSION
+#    return "{0}/{1}".format(abspath, fn)
+    
+#def get_fname(fn):
+#    return os.path.splitext(os.path.abspath(fn))[0] + 
+      
+def main(path):
+    """
+    Main program - compiles the given file,
+    and saves the output to a Hack file.
+    """
+    tok = Tokenizer()    
+    #parser = Parser()
+    
+    if os.path.isfile(path):
+        # Handle single file
+        file_list = [(path, open(path).read())]
+
+    else:
+        # Handle directory
+        try:            
+            file_list = [(fn, open("{0}/{1}".format(os.path.abspath(path), fn)).read())
+                          for fn in os.listdir(path) if fn.endswith(JACK_EXTENSION)]
+        except OSError:
+            raise
+            
+    for fn, contents in file_list:
+        tokens = tok.tokenize(contents)        
+        token_filename = get_token_filename(fn)       
+        open(token_filename, 'w').write(xml_to_str(tokens))
+        
+#        parsed = parser.parse(tokens)
+#        xml_filename = xml_filename_from_filename(fn)        
+#        open(xml_filename, 'w').write(xml_to_str(parsed))
+                
+        
+
+def xml_to_str(tree):
+    s = etree.tostring(tree, pretty_print=True)        
+    r = s.decode(encoding='UTF-8')
+    return '\n'.join([line.strip() for line in r.splitlines()])+'\n'
+    
+def usage():
+    """
+    Prints a usage message to the user.
+    """
+    print(USAGE_MSG.format(argv[0]))
+
+if __name__=="__main__":
+
+    if len(argv) != 2:
+        # Invalid command line arguments
+        usage()
+        exit(CODE_SUCCESS)
+        
+    # Run program, exit(-1) on failure
+    try:
+        main(argv[1])
+    except OSError as e:
+        print(BAD_FILE)
+        exit(CODE_FAILURE)
+    except Exception as e:
+        raise
+        exit(CODE_FAILURE)
+    
+    # exit(0) on success
+    exit(CODE_SUCCESS)
+    
+    
+    
