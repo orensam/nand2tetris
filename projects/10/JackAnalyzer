@@ -29,9 +29,113 @@ KEYWORDS = ('class', 'constructor', 'function', 'method', 'field', 'static',
 SYMBOLS = ('{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', '&', '|', '<', '>', '=', '~')
 
 
+class Parser(object):
+    def __init__(self):
+        self.tokens = []
+        self.root = None
+        self.cur = None
+    
+    def parse(self, tokens):        
+        self.tokens = tokens.getchildren().reverse()
+        parse_class()
+    
+    def parse_class(self):
 
+        token = tokens.pop()
+        if token.text != "class":
+            raise BAD_INPUT
+        self.root = etree.Element("class")
+        self.cur = self.root
+        self.cur.append(copy_element(token))
+        
+        self.add_terminal("identifier")
+        self.add_terminal("symbol","{")    
+        
+        self.parse_class_vars()
+        self.parse_class_subroutines
+        
+        self.add_terminal("symbol","}")
+        
+        
+    def add_terminal(self, tag=None, text=None):
 
+        token = tokens.pop()
 
+        if tag:
+            if token.tag != tag:
+                raise BAD_INPUT           
+         if text:
+             if token.text != text:
+                raise BAD_INPUT           
+                
+        self.cur.append(copy_element(token))        
+    
+    def add_non_terminal(tag):
+        token = etree.Element(tag)
+        self.cur.append(token)
+        self.cur = token
+        
+    def parse_class_vars(self):
+        
+        while get_next_text() in ("field", "static"):
+            add_non_terminal("classVarDec")
+            
+            add_terminal("keyword") # field / static
+            add_terminal("keyword") # int / char / bool          
+            add_terminal("identifier") # var name
+            
+            while self.tokens[-1] != ";":
+                add_terminal("symbol",',')
+                add_terminal("identifier") # var name
+                
+        self.cur = self.cur.getparent()
+        return
+    
+    def parse_subroutines(self):
+
+        while get_next_text() in ("method", "constructor", "function"):
+            add_non_terminal("subroutineDec")
+            self.parse_subroutine_dec()
+            self.parse_subroutine_parameter_list()
+            self.parse_subroutine_body()            
+      
+        self.cur = self.cur.getparent()
+        return
+        
+    
+    def parse_subroutine_dec(self):
+        add_terminal("keyword")
+        add_terminal()
+        add_terminal("identifier") # subroutine name
+        return        
+    
+    def parse_subroutine_parameter_list(self):
+        add_terminal("symbol","(")
+        add_non_terminal("subroutineDec")
+        
+        if get_next_text() != ")"
+            add_terminal("keyword")
+            add_terminal("identifier")
+            
+            while get_next_text() != ")":
+                add_terminal("symbol",",")
+                add_terminal("keyword")
+                add_terminal("identifier")
+                
+        self.cur = self.cur.getparent()
+        self.add_terminal("symbol",")")
+        return
+    
+    def parse_subroutine_body(self):
+
+    def get_next_text():
+        return self.tokens[-1].text.strip()
+        
+    def copy_element(source):
+        dest = etree.Element(source.tag)
+        dest.text = source.text
+        return dest
+    
 class Tokenizer(object):
     """
     This class is built in order to perform the whole assembly process.
@@ -126,7 +230,7 @@ def xml_filename_from_filename(jack_filename):
     """
     return os.path.splitext(jack_filename)[0] + XML_EXTENSION
 
-def get_token_filename(fn):
+def get_token_filename(jack_filename):
     return os.path.splitext(jack_filename)[0] + "T" + XML_EXTENSION
     
 #def xml_filename_from_dirname(dirname):
@@ -154,15 +258,21 @@ def main(path):
 
     else:
         # Handle directory
-        try:            
-            file_list = [(fn, open("{0}/{1}".format(os.path.abspath(path), fn)).read())
-                          for fn in os.listdir(path) if fn.endswith(JACK_EXTENSION)]
+        try:
+            file_list = []
+            for fn in os.listdir(path):
+                if fn.endswith(JACK_EXTENSION):
+                    fn = "{0}/{1}".format(os.path.abspath(path), fn)
+                    cont = open(fn).read()
+                    file_list.append((fn, cont))
+                    
         except OSError:
             raise
             
-    for fn, contents in file_list:
+    for fn, contents in file_list:    
         tokens = tok.tokenize(contents)        
         token_filename = get_token_filename(fn)       
+        
         open(token_filename, 'w').write(xml_to_str(tokens))
         
 #        parsed = parser.parse(tokens)
@@ -173,8 +283,8 @@ def main(path):
 
 def xml_to_str(tree):
     s = etree.tostring(tree, pretty_print=True)        
-    r = s.decode(encoding='UTF-8')
-    return '\n'.join([line.strip() for line in r.splitlines()])+'\n'
+    r = s.decode(encoding='UTF-8')  
+    return '\r\n'.join([line.strip() for line in r.splitlines()])+'\r\n'
     
 def usage():
     """
