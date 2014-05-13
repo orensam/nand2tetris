@@ -1,0 +1,28 @@
+romig, orensam
+===============================================================================
+Romi Gelman, ID 302170089, romi.gelman@mail.huji.ac.il
+Oren Samuel, ID 200170694, oren.samuel@mail.huji.ac.il
+===============================================================================
+
+               Project 09 - High Level Programming
+               -----------------------------------
+
+Submitted Files
+---------------
+
+Snake game files:
+Main.jack
+SnakeGame.jack
+Snake.jack
+SnakeLink.jack
+
+These files compile into a wonderful and amazing Snake game, just like old times.
+You win when the snake reaches a certain length, and lose when touching the border of the screen.
+
+README - This file.
+
+Remarks
+-------
+None
+
+
