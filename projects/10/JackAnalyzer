@@ -45,7 +45,6 @@ class Parser(object):
 
         token = self.tokens.pop()
         if token.text.strip() != "class":
-            print("token text: " + token.text)
             raise Exception(BAD_INPUT)
         self.root = etree.Element("class")
         self.cur = self.root
@@ -62,10 +61,8 @@ class Parser(object):
         
     def add_terminal(self, tag=None, text=None):
 
-        token = self.tokens.pop()
-        
-        print("parsing token: " + token.tag + " " + token.text)
-
+        token = self.tokens.pop()        
+        #print("parsing token: " + token.tag + " " + token.text)
         if tag:
             if token.tag != tag:
                 raise Exception(BAD_INPUT)
@@ -447,7 +444,6 @@ def main(path):
         token_filename = get_token_filename(fn)               
         open(token_filename, 'w').write(tokens_to_str(tokens))
         
-        print("finished tokenize, start parse")
         parsed = parser.parse(tokens)
         xml_filename = xml_filename_from_filename(fn)        
         open(xml_filename, 'w').write(xml_to_str(parsed))
