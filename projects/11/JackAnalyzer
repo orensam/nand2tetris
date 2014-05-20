@@ -1,0 +1,576 @@
+#!/usr/bin/env python3
+
+from sys import argv
+import os
+from lxml import etree
+import re
+
+
+# Messages
+USAGE_MSG = "Usage: {0} <filename.vm or directory>"
+BAD_INPUT = "Invalid program. Terminating compilation"
+BAD_FILE = "Problem reading from file or writing to file"
+
+# Exit codes
+CODE_SUCCESS = 0
+CODE_FAILURE = -1
+
+JACK_EXTENSION = ".jack"
+XML_EXTENSION = ".xml"
+
+COMMENT_PREFIX = "//"
+BIG_COMMENT_PREFIX = "/*"
+BIG_COMMENT_SUFFIX = "*/"   
+
+KEYWORDS = ('class', 'constructor', 'function', 'method', 'field', 'static',
+            'var', 'int', 'char', 'boolean', 'void', 'true', 'false', 'null', 'this',
+            'let', 'do', 'if', 'else', 'while', 'return')
+
+SYMBOLS = ('{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', '&', '|', '<', '>', '=', '~')
+OPS = ('+', '-', '*', '/', '&', '|', '<', '>', '=')
+
+class Symbol(object)
+    def __init__(self, name, kind, s_type, numnber)
+        self.name = name
+        self.s_type = s_type
+        self.kind = kind
+        self.number = number
+                
+class SymbolTable(object):
+
+    def __init__(self, father_table=None):
+        self.father_table = father_table
+        self.symbols = []         
+        self.counters = {'static':0, 'field':0, 'local':0, 'argument':0}
+
+    def add_symbol(s):
+        self.symbols.append(s)
+    
+
+class VMCreator(object)
+    
+    def __init__(self)
+        self.root = None
+        self.children = None
+        self.class_st = SymbolTable()                
+    
+    def create(root)
+        #self.root = root
+        #self.children = root.getchildren()
+        self.parse_class_children(root.getchildren())
+        
+        #self.add_command('class')
+        
+        
+        
+    def parse_class_children(self, children):
+        for c in children:
+            if c.tag == 'identifier':
+                self.cur_class = c.text
+            elif c.tag == 'classVarDec':
+                self.parse_classvardec(c)
+            elif c.tag == 'subroutineDec':
+                self.parse_subroutinedec_children(c.getchildren())
+                
+        
+    def parse_classvardec(self, dec):
+        children = dec.getchildren()
+        names = dec.findall('identifier')       
+        for name in names:
+            if children[0].text.strip() == 'static':
+                idx = self.class_st.counters['static']
+                s = Symbol(name, children[0].text.strip(), children[1].text.strip(), idx)
+                self.class_st.counters['static'] += 1
+                
+                
+            elif children[0].text.strip() == 'field':
+                idx = self.class_st.counters['field']
+                s = Symbol(name, children[0].text.strip(), children[1].text.strip(), idx)
+                self.class_st.counters['field'] += 1
+                
+                
+        s = Symbol(childr)
+    
+    def parse_subroutinedec_children(self, children):
+        pass
+        
+        
+    
+    def add_command(self, tag=None, text=None):
+        #print("parsing token: " + token.tag + " " + token.text)
+        if tag:
+            if root.tag != tag:
+                raise Exception(BAD_INPUT)
+        if text:
+            if root.text.strip() != text:
+                raise Exception(BAD_INPUT)
+        
+
+        if tag == 'class'
+            children = root.getchildren()
+            
+            
+            
+    
+        
+        
+        
+class Parser(object):
+    def __init__(self):
+        self.tokens = []
+        self.root = None
+        self.cur = None
+    
+    def parse(self, tokens):        
+        self.tokens = tokens.getchildren()
+        self.tokens.reverse()
+        self.parse_class()
+        return self.root
+    
+    def parse_class(self):
+
+        token = self.tokens.pop()
+        if token.text.strip() != "class":
+            raise Exception(BAD_INPUT)
+        self.root = etree.Element("class")
+        self.cur = self.root
+        self.cur.append(self.copy_element(token))
+        
+        self.add_terminal("identifier")
+        self.add_terminal("symbol","{")    
+        
+        self.parse_class_vars()
+        self.parse_subroutines()
+        
+        self.add_terminal("symbol","}")        
+        
+        
+    def add_terminal(self, tag=None, text=None):
+
+        token = self.tokens.pop()        
+        #print("parsing token: " + token.tag + " " + token.text)
+        if tag:
+            if token.tag != tag:
+                raise Exception(BAD_INPUT)
+        if text:
+            if token.text.strip() != text:
+                raise Exception(BAD_INPUT)
+                
+        self.cur.append(self.copy_element(token))        
+    
+    def add_non_terminal(self, tag):
+        token = etree.Element(tag)
+        self.cur.append(token)
+        self.cur = token
+        
+    def parse_class_vars(self):
+        
+        while self.get_next_text() in ("field", "static"):
+            self.add_non_terminal("classVarDec")
+            
+            self.add_terminal("keyword") # field / static
+            self.add_terminal() # int / char / bool / classname        
+            self.add_terminal("identifier") # var name
+            
+            while self.get_next_text() != ";":
+                self.add_terminal("symbol",',')
+                self.add_terminal("identifier") # var name
+            self.add_terminal("symbol", ";") 
+            self.cur = self.cur.getparent()
+            
+        return
+    
+    def parse_subroutines(self):
+
+        while self.get_next_text() in ("method", "constructor", "function"):
+            self.add_non_terminal("subroutineDec")
+            self.parse_subroutine_dec()
+            self.parse_subroutine_parameter_list()
+            self.parse_subroutine_body()            
+            self.cur = self.cur.getparent()
+
+        return
+        
+    
+    def parse_subroutine_dec(self):
+        self.add_terminal("keyword")
+        self.add_terminal()
+        self.add_terminal("identifier") # subroutine name
+        return        
+    
+    def parse_subroutine_parameter_list(self):
+        self.add_terminal("symbol","(")
+        self.add_non_terminal("parameterList")
+        
+        if self.get_next_text() != ")":
+            self.add_terminal("keyword")
+            self.add_terminal("identifier")
+            
+            while self.get_next_text() != ")":
+                self.add_terminal("symbol",",")
+                self.add_terminal("keyword")
+                self.add_terminal("identifier")
+        
+        else:
+            self.cur.text = "\n"
+                
+        self.cur = self.cur.getparent()
+        self.add_terminal("symbol",")")
+        return
+    
+    def parse_subroutine_body(self):
+        self.add_non_terminal("subroutineBody")
+        self.add_terminal("symbol","{")
+        
+        self.parse_subroutine_vars()
+        self.parse_statements()
+        
+        self.add_terminal("symbol","}")
+        self.cur = self.cur.getparent()
+        
+    
+    def parse_subroutine_vars(self):
+        while self.get_next_text() == "var":
+            self.add_non_terminal("varDec")
+            
+            self.add_terminal("keyword", "var")
+            self.add_terminal() # int / char / bool / classname
+            self.add_terminal("identifier") # var name
+            
+            while self.get_next_text() != ";":
+                self.add_terminal("symbol",',')
+                self.add_terminal("identifier") # var name
+
+            self.add_terminal("symbol",";")
+                                
+            self.cur = self.cur.getparent()
+        return
+        
+    def parse_statements(self):
+        self.add_non_terminal("statements")
+        while self.get_next_text() != "}":
+            if self.get_next_text() == "let":
+                self.parse_let()
+            elif self.get_next_text() == "if":
+                self.parse_if()
+            if self.get_next_text() == "while":
+                self.parse_while()
+            if self.get_next_text() == "do":
+                self.parse_do()
+            if self.get_next_text() == "return":
+                self.parse_return()
+        
+        self.cur = self.cur.getparent()
+        
+    def parse_let(self):
+        self.add_non_terminal("letStatement")
+        self.add_terminal("keyword","let")            
+        self.add_terminal("identifier") # var name
+
+        if self.get_next_text() == "[":
+            self.add_terminal("symbol", "[")
+            self.parse_expression()
+            self.add_terminal("symbol", "]")
+        
+        self.add_terminal("symbol","=")
+        self.parse_expression()
+        self.add_terminal("symbol",";")        
+        self.cur = self.cur.getparent()
+    
+    def parse_if(self):
+        self.add_non_terminal("ifStatement")
+        self.add_terminal("keyword","if")
+        self.add_terminal("symbol", "(")
+        self.parse_expression()
+        self.add_terminal("symbol", ")")
+        self.add_terminal("symbol", "{")
+        self.parse_statements()
+        self.add_terminal("symbol", "}")
+        if self.get_next_text() == "else":
+            self.add_terminal("keyword", "else")
+            self.add_terminal("symbol", "{")
+            self.parse_statements()
+            self.add_terminal("symbol", "}")            
+        self.cur = self.cur.getparent()
+
+    def parse_while(self):
+        self.add_non_terminal("whileStatement")
+        self.add_terminal("keyword","while")
+        self.add_terminal("symbol", "(")
+        self.parse_expression()
+        self.add_terminal("symbol", ")")
+        self.add_terminal("symbol", "{")
+        self.parse_statements()
+        self.add_terminal("symbol", "}")
+        self.cur = self.cur.getparent()
+    
+    def parse_do(self):
+        self.add_non_terminal("doStatement")
+        self.add_terminal("keyword","do")
+        self.parse_subroutine_call()
+        self.add_terminal("symbol",";")
+        self.cur = self.cur.getparent()
+    
+    def parse_return(self):
+        self.add_non_terminal("returnStatement")
+        self.add_terminal("keyword","return")
+        if self.get_next_text() != ";":
+            self.parse_expression()
+        self.add_terminal("symbol", ";")
+        self.cur = self.cur.getparent()
+
+    def parse_expression(self):
+        self.add_non_terminal("expression")
+        self.parse_term()
+        while self.get_next_text() in OPS:
+            self.add_terminal("symbol")
+            self.parse_term()
+        self.cur = self.cur.getparent()
+    
+    def parse_term(self):
+        self.add_non_terminal("term")
+        
+        if self.get_next_tag() in ("integerConstant","stringConstant"):
+            self.add_terminal()
+        
+        elif self.get_next_text() in ("true", "false", "null", "this"): # KeywordConstant
+            self.add_terminal("keyword")
+        
+        elif self.get_next_tag() == "identifier": 
+            
+            # Subroutine Call
+            if self.tokens[-2].text.strip() in ("(", "."):
+                self.parse_subroutine_call()
+            
+            # Var name
+            else:            
+                self.add_terminal("identifier")
+                if self.get_next_text() == "[":
+                    self.add_terminal("symbol", "[")
+                    self.parse_expression()
+                    self.add_terminal("symbol", "]")
+        
+        elif self.get_next_text() == "(":
+            self.add_terminal("symbol", "(")
+            self.parse_expression()
+            self.add_terminal("symbol", ")")
+            
+        elif self.get_next_text() in ("-", "~"):
+            self.add_terminal("symbol")
+            self.parse_term()
+            
+        self.cur = self.cur.getparent()
+        
+    def parse_subroutine_call(self):
+        self.add_terminal("identifier") # subroutine/class/var name
+        if self.get_next_text() == ".": # class/var name
+            self.add_terminal("symbol", ".")
+            self.add_terminal("identifier")
+        self.add_terminal("symbol", "(")
+        self.add_non_terminal("expressionList")
+        
+        if self.get_next_text() != ")":
+            self.parse_expression()
+        
+            while(self.get_next_text() != ")"):
+                self.add_terminal("symbol",",")
+                self.parse_expression()
+        
+        else:
+            self.cur.text = "\n"
+        
+        self.cur = self.cur.getparent()
+        self.add_terminal("symbol", ")")
+
+    def get_next_tag(self):
+        return self.tokens[-1].tag.strip()            
+        
+    def get_next_text(self):
+        #print ("get_next_text")
+        return self.tokens[-1].text.strip()
+        
+    def copy_element(self, source):
+        dest = etree.Element(source.tag)
+        dest.text = source.text
+        return dest
+    
+class Tokenizer(object):
+    """
+    This class is built in order to perform the whole assembly process.
+    Contains functions that handle the different textual aspects of the asm code,
+    and converts them into the correct Hack bit codes.
+    """
+    
+    def __init__(self):
+        pass
+ 
+    
+    def tokenize(self, data):
+        """
+        Main function of the parser.
+        Receives list of tuples (<filename, file content>), and returns its asm translation.
+        """
+        lines = data.splitlines()
+        lines = self.remove_comment_lines(lines)
+        # no empty lines, no comment lines
+        
+        tree = self.lines_to_tokens(lines)
+        
+        return tree
+       
+    def remove_comment_lines(self, lines):
+        new_lines = []
+        for line in lines:
+            line = line.strip()
+            if not line or not line.startswith(COMMENT_PREFIX):
+                new_lines.append(line)
+        return new_lines
+    
+    def lines_to_tokens(self, lines):
+        tree = etree.Element('tokens')
+        is_big_comment = False
+        for line in lines:
+            
+            while line:                
+                # Handle big comments
+                if line.startswith(BIG_COMMENT_PREFIX):
+                    is_big_comment = True                    
+                
+                if is_big_comment:
+                    idx = line.find(BIG_COMMENT_SUFFIX)
+                    if idx >= 0:
+                        line = line[idx+2:].strip() 
+                        is_big_comment = False
+                    else:
+                        line = ""
+                        
+                 # Handle strings
+                elif line.startswith('"'):
+                   idx = line.find('"', 1)
+                   self.add_child(tree, "stringConstant", line[1:idx])
+                   line = line[idx+1:].strip()
+                    
+                 # Handle regular comments
+                elif line.startswith(COMMENT_PREFIX):
+                    line = ""
+                    
+                else:
+                   found = re.findall('^\w+',line)
+                   if found:
+                       word = found[0]
+                       if word in KEYWORDS:
+                           self.add_child(tree, "keyword", word)
+                        
+                       elif word.isdigit():
+                           self.add_child(tree, "integerConstant", word)
+                       else:
+                           self.add_child(tree, "identifier", word)
+                        
+                       line = line[len(word):].strip()
+                    
+                   elif line.startswith(SYMBOLS):
+                       self.add_child(tree, 'symbol', line[0])
+                       line = line[1:].strip()
+
+        return tree
+                        
+    def add_child(self, father, child_type, child_text):
+        child = etree.Element(child_type)
+        child.text = " {0} ".format(child_text)
+        father.append(child)
+
+
+                                            
+def xml_filename_from_filename(jack_filename):
+    """
+    Gets an input filename and returns the output ASM filename.
+    """
+    return os.path.splitext(jack_filename)[0] + XML_EXTENSION
+
+def get_token_filename(jack_filename):
+    return os.path.splitext(jack_filename)[0] + "T" + XML_EXTENSION
+    
+#def xml_filename_from_dirname(dirname):
+#    """
+#    Gets an input directory name and returns the output ASM filename.
+#    """
+#    abspath = os.path.abspath(dirname)
+#    fn = os.path.basename(abspath) + XML_EXTENSION
+#    return "{0}/{1}".format(abspath, fn)
+    
+#def get_fname(fn):
+#    return os.path.splitext(os.path.abspath(fn))[0] + 
+      
+def main(path):
+    """
+    Main program - compiles the given file,
+    and saves the output to a Hack file.
+    """
+    tok = Tokenizer()    
+    parser = Parser()
+    
+    if os.path.isfile(path):
+        # Handle single file
+        file_list = [(path, open(path).read())]
+
+    else:
+        # Handle directory
+        try:
+            file_list = []
+            for fn in os.listdir(path):
+                if fn.endswith(JACK_EXTENSION):
+                    fn = "{0}/{1}".format(os.path.abspath(path), fn)
+                    cont = open(fn).read()
+                    file_list.append((fn, cont))
+                    
+        except OSError:
+            raise
+            
+    for fn, contents in file_list:    
+        tokens = tok.tokenize(contents)        
+        #token_filename = get_token_filename(fn)               
+        #open(token_filename, 'w').write(tokens_to_str(tokens))
+        
+        parsed = parser.parse(tokens)
+        xml_filename = xml_filename_from_filename(fn)        
+        open(xml_filename, 'w').write(xml_to_str(parsed))
+                        
+
+def tokens_to_str(tree):
+    s = etree.tostring(tree, pretty_print=True)        
+    r = s.decode(encoding='UTF-8')  
+    return '\r\n'.join([line.strip() for line in r.splitlines()])+'\r\n'
+
+def xml_to_str(tree):
+    s = etree.tostring(tree, pretty_print=True)        
+    r = s.decode(encoding='UTF-8')  
+    return r.replace('\n','\r\n')
+    
+def usage():
+    """
+    Prints a usage message to the user.
+    """
+    print(USAGE_MSG.format(argv[0]))
+
+if __name__=="__main__":
+
+    if len(argv) != 2:
+        # Invalid command line arguments
+        usage()
+        exit(CODE_SUCCESS)
+        
+    # Run program, exit(-1) on failure
+    try:
+        main(argv[1])
+    except OSError as e:
+        print(BAD_FILE)
+        exit(CODE_FAILURE)
+    except Exception as e:
+        raise
+        exit(CODE_FAILURE)
+    
+    # exit(0) on success
+    exit(CODE_SUCCESS)
+    
+    
+    
