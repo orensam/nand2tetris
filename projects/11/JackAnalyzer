@@ -70,29 +70,31 @@ class VMCreator(object)
             elif c.tag == 'classVarDec':
                 self.parse_classvardec(c)
             elif c.tag == 'subroutineDec':
-                self.parse_subroutinedec_children(c.getchildren())
+                self.parse_subroutinedec(c)
                 
         
     def parse_classvardec(self, dec):
         children = dec.getchildren()
-        names = dec.findall('identifier')       
+        names = dec.findall('identifier')
+    
         for name in names:
+            s = None
             if children[0].text.strip() == 'static':
                 idx = self.class_st.counters['static']
                 s = Symbol(name, children[0].text.strip(), children[1].text.strip(), idx)
                 self.class_st.counters['static'] += 1
                 
-                
             elif children[0].text.strip() == 'field':
                 idx = self.class_st.counters['field']
                 s = Symbol(name, children[0].text.strip(), children[1].text.strip(), idx)
+                
                 self.class_st.counters['field'] += 1
-                
-                
-        s = Symbol(childr)
+                        
+            self.class_st.add_symbol(s)
     
-    def parse_subroutinedec_children(self, children):
-        pass
+    def parse_subroutinedec(self, dec):
+        
+        
         
         
     
