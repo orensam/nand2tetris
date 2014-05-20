@@ -19,7 +19,7 @@ JACK_EXTENSION = ".jack"
 XML_EXTENSION = ".xml"
 
 COMMENT_PREFIX = "//"
-BIG_COMMENT_PREFIX = "/**"
+BIG_COMMENT_PREFIX = "/*"
 BIG_COMMENT_SUFFIX = "*/"   
 
 KEYWORDS = ('class', 'constructor', 'function', 'method', 'field', 'static',
@@ -126,7 +126,7 @@ class Parser(object):
                 self.add_terminal("identifier")
         
         else:
-            self.cur.text = ""
+            self.cur.text = "\n"
                 
         self.cur = self.cur.getparent()
         self.add_terminal("symbol",")")
@@ -201,6 +201,7 @@ class Parser(object):
         self.parse_statements()
         self.add_terminal("symbol", "}")
         if self.get_next_text() == "else":
+            self.add_terminal("keyword", "else")
             self.add_terminal("symbol", "{")
             self.parse_statements()
             self.add_terminal("symbol", "}")            
@@ -290,7 +291,7 @@ class Parser(object):
                 self.parse_expression()
         
         else:
-            self.cur.text = ""
+            self.cur.text = "\n"
         
         self.cur = self.cur.getparent()
         self.add_terminal("symbol", ")")
@@ -441,8 +442,8 @@ def main(path):
             
     for fn, contents in file_list:    
         tokens = tok.tokenize(contents)        
-        token_filename = get_token_filename(fn)               
-        open(token_filename, 'w').write(tokens_to_str(tokens))
+        #token_filename = get_token_filename(fn)               
+        #open(token_filename, 'w').write(tokens_to_str(tokens))
         
         parsed = parser.parse(tokens)
         xml_filename = xml_filename_from_filename(fn)        
