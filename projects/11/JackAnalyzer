@@ -17,6 +17,7 @@ CODE_FAILURE = -1
 
 JACK_EXTENSION = ".jack"
 XML_EXTENSION = ".xml"
+VM_EXTENSION = ".vm"
 
 COMMENT_PREFIX = "//"
 BIG_COMMENT_PREFIX = "/*"
@@ -29,8 +30,16 @@ KEYWORDS = ('class', 'constructor', 'function', 'method', 'field', 'static',
 SYMBOLS = ('{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', '&', '|', '<', '>', '=', '~')
 OPS = ('+', '-', '*', '/', '&', '|', '<', '>', '=')
 
-class Symbol(object)
-    def __init__(self, name, kind, s_type, numnber)
+OP_DICT = {'+':'add', '-':'sub', '*':"call Math.multiply 2", '/':"call Math.divide 2", '&':'and', '|':'or', 
+           '<':'lt', '>':'gt' , '=':'eq'}
+
+KW_DICT = {'true' : "push constant 0" + os.linesep + "not" ,
+           'false' : "push constant 0", 
+           'null' : "push constant 0", 
+           'this' : "push pointer 0"}           
+           
+class Symbol(object):
+    def __init__(self, name, kind, s_type, number):
         self.name = name
         self.s_type = s_type
         self.kind = kind
@@ -43,80 +52,317 @@ class SymbolTable(object):
         self.symbols = []         
         self.counters = {'static':0, 'field':0, 'local':0, 'argument':0}
 
-    def add_symbol(s):
+    def add_symbol(self, s):
         self.symbols.append(s)
+        self.counters[s.kind] += 1
     
-
-class VMCreator(object)
+    def get_symbol(self, name):
+        for s in self.symbols:
+            if s.name == name:
+                return s
     
-    def __init__(self)
+        if self.father_table:                
+            return self.father_table.get_symbol(name)    
+            
+    
+    
+class VMCreator(object):
+    
+    def __init__(self):
         self.root = None
         self.children = None
-        self.class_st = SymbolTable()                
+        self.class_st = SymbolTable()
+        self.cur_func_type = ""
+        self.result = ""                
+        self.label_counter = 0
     
-    def create(root)
+    def create(self, root):
         #self.root = root
         #self.children = root.getchildren()
         self.parse_class_children(root.getchildren())
+        return self.result
         
         #self.add_command('class')
         
         
-        
+    def add_line(self, s):
+        self.result += s + os.linesep
+    
     def parse_class_children(self, children):
         for c in children:
             if c.tag == 'identifier':
-                self.cur_class = c.text
+                self.cur_class = c.text.strip()
+                print ("cur class is " + self.cur_class)
             elif c.tag == 'classVarDec':
                 self.parse_classvardec(c)
             elif c.tag == 'subroutineDec':
-                self.parse_subroutinedec(c)
+                self.parse_subroutine_dec(c)
                 
         
     def parse_classvardec(self, dec):
         children = dec.getchildren()
-        names = dec.findall('identifier')
+        names = dec[2::2]
+        #dec.findall('identifier')
     
         for name in names:
             s = None
             if children[0].text.strip() == 'static':
                 idx = self.class_st.counters['static']
-                s = Symbol(name, children[0].text.strip(), children[1].text.strip(), idx)
-                self.class_st.counters['static'] += 1
+                s = Symbol(name.text.strip(), children[0].text.strip(), children[1].text.strip(), idx)
+                #self.class_st.counters['static'] += 1
                 
             elif children[0].text.strip() == 'field':
                 idx = self.class_st.counters['field']
-                s = Symbol(name, children[0].text.strip(), children[1].text.strip(), idx)
+                s = Symbol(name.text.strip(), children[0].text.strip(), children[1].text.strip(), idx)
                 
-                self.class_st.counters['field'] += 1
+                #self.class_st.counters['field'] += 1
                         
             self.class_st.add_symbol(s)
     
-    def parse_subroutinedec(self, dec):
-        
-        
-        
-        
-    
-    def add_command(self, tag=None, text=None):
-        #print("parsing token: " + token.tag + " " + token.text)
-        if tag:
-            if root.tag != tag:
-                raise Exception(BAD_INPUT)
-        if text:
-            if root.text.strip() != text:
-                raise Exception(BAD_INPUT)
-        
+    def parse_subroutine_dec(self, dec):
 
-        if tag == 'class'
-            children = root.getchildren()
+        st = SymbolTable(self.class_st)
+
+        children = dec.getchildren()
+        
+        subroutine_name = children[2].text
+        param_list = children[4]
+        #n_vars = len(dec.findall("varDec")) + 1 # Search for ","
+        
+        
+        self.cur_func_type = dec[0].text.strip()
+        if self.cur_func_type == 'method':
+            st.add_symbol(Symbol('this', 'argument', self.cur_class, 0))                        
             
-            
+        n_vars = self.parse_subroutine_vardecs(children[6], st)
+
+        self.add_line("function {0}.{1} {2}".format(self.cur_class, subroutine_name.strip(), n_vars))        
+
+        self.parse_parameter_list(param_list, st)
+        self.parse_subroutine_body(children[6], st)
+    
+    def parse_parameter_list(self, dec, st):
+        children = dec.getchildren()
+        for i in range(0, len(dec), 3):
+            idx = st.counters['argument']
+            st.add_symbol(Symbol(dec[i+1].text.strip(), 'argument', dec[i], idx))
             
     
+    def parse_subroutine_vardecs(self, dec, st):
+        # Recieves subroutine body
+        vardecs = dec.findall("varDec")
+        c = 0
+        for vd in vardecs:
+            children = vd.getchildren()
+            s_type = vd[1]
+            names = vd[2::2]
+            for name in names:
+                idx = st.counters['local']
+                st.add_symbol(Symbol(name.text.strip(), 'local', s_type, idx))
+                c += 1
+        return c
+                
+        
+    def parse_subroutine_body(self, dec, st):
+        
+        statements = dec.find('statements')
+        
+        if self.cur_func_type == 'constructor':
+            n_fields = self.class_st.counters['field']
+            self.add_line("push constant {0}".format(n_fields))
+            self.add_line("call Memory.alloc 1")
+            self.add_line("pop pointer 0")
+        elif self.cur_func_type == 'method':
+            self.add_line("push argument 0")
+            self.add_line("pop pointer 0")
+
+        self.parse_statements(statements, st)                
+    
+    def parse_statements(self, dec, st):
+        
+        for s in dec:
+            if s.tag == "letStatement":
+                self.parse_let_statement(s, st)
+                
+            elif s.tag == "ifStatement":
+                self.parse_if_statement(s, st)            
+                
+            elif s.tag == "whileStatement":
+                self.parse_while_statement(s, st)
+                
+            elif s.tag == "doStatement":
+                self.parse_do_statement(s, st)
+                
+            elif s.tag == "returnStatement":
+                self.parse_return_statement(s, st)
+            
+    def parse_let_statement(self, dec, st):
+        var = st.get_symbol(dec[1].text.strip())
+        
+        area = var.kind
+        if area == 'field':
+            area = 'this'
+        
+        if dec[2].text.strip() == '[':
+            self.parse_expression(dec[3], st)
+            self.add_line("push {0} {1}".format(area, var.number))
+            self.add_line("add")
+            self.add_line("pop pointer 1")
+            self.parse_expression(dec[-2], st)
+            self.add_line("pop that 0")
+        else:
+            self.parse_expression(dec[-2], st)
+            self.add_line("pop {0} {1}".format(area, var.number))
+            
+    
+    
+    def parse_if_statement(self, dec, st):
+        self.parse_expression(dec[2], st)
+        
+        true_label = self.get_label("IF_TRUE")        
+        self.add_line("if-goto {0}".format(true_label))
+        
+        false_label = self.get_label("IF_FALSE")
+        self.add_line("goto {0}".format(false_label))
+        
+        self.add_line("label {0}".format(true_label))
+        
+        self.parse_statements(dec[5], st)
+        
+        if self.has_token(dec, 'keyword', 'else'):
+            end_label = self.get_label("IF_END")
+            self.add_line("goto {0}".format(end_label))
+            self.add_line("label {0}".format(false_label))
+            self.parse_statements(dec[9], st)
+            self.add_line("label {0}".format(end_label))
+        
+        else:
+            self.add_line("label {0}".format(false_label))
+            
+    def has_token(self, dec, tag, text):
+        for x in dec:
+            if x.tag.strip() == tag:
+                if x.text and x.text.strip() == text:
+                    return True
+
+    def parse_while_statement(self, dec, st):
+        exp_label = self.get_label("WHILE_EXP")
+        end_label = self.get_label("WHILE_END")
+        self.add_line("label {0}".format(exp_label))
+        self.parse_expression(dec[2], st)
+        self.add_line("not")
+        self.add_line("if-goto {0}".format(end_label))
+        self.parse_statements(dec[5], st)
+        self.add_line("goto {0}".format(exp_label))
+        self.add_line("label {0}".format(end_label))
+    
+    def get_label(self, s):
+        ret = "{0}.{1}".format(s, self.label_counter)
+        self.label_counter += 1
+        return ret
+        
+    def parse_do_statement(self, dec, st):
+        exp_list = dec.find('expressionList').findall('expression')
+        #exps_list = exp_list
+        n_params = len(exp_list)
+        for exp in exp_list:
+            self.parse_expression(exp, st)
+        
+        if self.has_token(dec, 'symbol', '.'):
+            func_name = "{0}.{1}".format(dec[1].text.strip(), dec[3].text.strip())
+            s = st.get_symbol(dec[1].text.strip())
+            if s:
+                kind = s.kind
+                if kind == 'filed':
+                    kind = 'this'
+                self.add_line("push {0} {1}".format(kind, s.number))
+        else:
+            func_name = "{0}.{1}".format(self.cur_class, dec[1].text.strip())
+            n_params += 1        
+            
+        self.add_line("call {0} {1}".format(func_name, n_params))
+        self.add_line("pop temp 0")
+    
+    def parse_return_statement(self, dec, st):
+        if dec[1].tag == 'expression':
+            self.parse_expression(dec[1], st)
+        else:
+            self.add_line("push constant 0")
+        self.add_line('return')
+    
+    
+    def parse_expression(self, dec, st):
+        i = 1
+        #print (dec.tag)
+        self.parse_term(dec[0], st)
+        while (i < len(dec) and dec[i].tag == "symbol"):
+            self.parse_term(dec[i+1], st)
+            op = dec[i].text.strip()
+            self.add_line(OP_DICT[op])
+            i += 2 
+            
+    def parse_term(self, dec, st):
+        if dec[0].tag == 'integerConstant':
+            num = dec[0].text.strip()
+            self.add_line("push constant {0}".format(num))
+        elif dec[0].tag == 'stringConstant':
+            s = dec[0].text[1:-1]
+            self.add_line("push constant {0}".format(len(s)))
+            self.add_line("call String.new 1")
+            for c in s:
+                self.add_line("push constant {0}".format(ord(c)))
+                self.add_line("call String.appendChar 2")
+        elif dec[0].tag == 'keyword':
+            self.add_line(KW_DICT[dec[0].text.strip()])
         
         
+        elif dec[0].tag == 'identifier' and len(dec) == 1: #varName
+            #single identifier (var name)
+            s = st.get_symbol(dec[0].text.strip())
+            kind = s.kind
+            if kind == 'field':
+                kind = 'this'
+            self.add_line("push {0} {1}".format(kind, s.number))
         
+        elif dec[0].tag == 'identifier' and dec[1].text.strip() == '[': #varName[..]
+            # array
+            s = st.get_symbol(dec[0].text.strip())
+            kind = s.kind
+            if kind == 'field':
+                kind = 'this'
+                
+            self.parse_expression(dec[2], st)
+            self.add_line("push {0} {1}".format(kind, s.number))
+            self.add_line("add")
+            self.add_line("pop pointer 1")
+            self.add_line("push that 0")
+            
+        elif dec[0].tag == 'identifier' and dec[1].text.strip() in ['(','.']: #subroutinecall
+            exp_list = dec.find('expressionList').findall('expression')
+            n_params = len(exp_list)
+            for exp in exp_list:
+                self.parse_expression(exp, st)
+        
+            if self.has_token(dec, 'symbol', '.'):
+                func_name = "{0}.{1}".format(dec[0].text.strip(), dec[2].text.strip())
+            else:
+                func_name = "{0}.{1}".format(self.cur_class, dec[0].text.strip())
+                n_params += 1        
+            
+            self.add_line("call {0} {1}".format(func_name, n_params))
+            
+        elif dec[0].text.strip() == "(":
+            self.parse_expression(dec[1], st)
+        
+        elif dec[0].text.strip() in ['-', '~']:
+            self.parse_term(dec[1], st)
+            if dec[0].text.strip() == '-':
+                self.add_line("neg")
+            else:
+                self.add_line("not")
+            
+                
+    
 class Parser(object):
     def __init__(self):
         self.tokens = []
@@ -483,6 +729,12 @@ def xml_filename_from_filename(jack_filename):
     """
     return os.path.splitext(jack_filename)[0] + XML_EXTENSION
 
+def vm_filename_from_filename(jack_filename):
+    """
+    Gets an input filename and returns the output ASM filename.
+    """
+    return os.path.splitext(jack_filename)[0] + VM_EXTENSION
+    
 def get_token_filename(jack_filename):
     return os.path.splitext(jack_filename)[0] + "T" + XML_EXTENSION
     
@@ -530,6 +782,12 @@ def main(path):
         parsed = parser.parse(tokens)
         xml_filename = xml_filename_from_filename(fn)        
         open(xml_filename, 'w').write(xml_to_str(parsed))
+        
+        vmc = VMCreator()
+        print("creating VM for file " + fn)
+        vm_filename = vm_filename_from_filename(fn)        
+        vm_str = vmc.create(parsed)
+        open(vm_filename, 'w').write(vm_str)
                         
 
 def tokens_to_str(tree):
