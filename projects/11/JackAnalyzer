@@ -85,8 +85,10 @@ class VMCreator(object):
         #self.add_command('class')
         
         
-    def add_line(self, s):
+    def add_line(self, s, debug=False):
         self.result += s + os.linesep
+        if debug:
+            print("adding line: " + s + os.linesep)
     
     def parse_class_children(self, children):
         for c in children:
@@ -154,7 +156,7 @@ class VMCreator(object):
         c = 0
         for vd in vardecs:
             children = vd.getchildren()
-            s_type = vd[1]
+            s_type = vd[1].text.strip()
             names = vd[2::2]
             for name in names:
                 idx = st.counters['local']
@@ -270,13 +272,22 @@ class VMCreator(object):
         
         if self.has_token(dec, 'symbol', '.'):
             func_name = "{0}.{1}".format(dec[1].text.strip(), dec[3].text.strip())
+            print("searching for var named " + dec[1].text.strip())
             s = st.get_symbol(dec[1].text.strip())
             if s:
+                print("found var named " + dec[1].text.strip())
                 kind = s.kind
-                if kind == 'filed':
+                if kind == 'field':
                     kind = 'this'
                 self.add_line("push {0} {1}".format(kind, s.number))
+                func_name = "{0}.{1}".format(s.s_type, dec[3].text.strip())
+                print("in parse do statement. var name is " + s.name + '\n')
+                print("adding call to func " + func_name + '\n')                
+                n_params += 1
+            else:
+                print("DID NOT FIND var named " + dec[1].text.strip())
         else:
+            self.add_line("push pointer 0")
             func_name = "{0}.{1}".format(self.cur_class, dec[1].text.strip())
             n_params += 1        
             
@@ -302,9 +313,11 @@ class VMCreator(object):
             i += 2 
             
     def parse_term(self, dec, st):
+    
         if dec[0].tag == 'integerConstant':
             num = dec[0].text.strip()
             self.add_line("push constant {0}".format(num))
+    
         elif dec[0].tag == 'stringConstant':
             s = dec[0].text[1:-1]
             self.add_line("push constant {0}".format(len(s)))
@@ -312,7 +325,9 @@ class VMCreator(object):
             for c in s:
                 self.add_line("push constant {0}".format(ord(c)))
                 self.add_line("call String.appendChar 2")
+    
         elif dec[0].tag == 'keyword':
+            
             self.add_line(KW_DICT[dec[0].text.strip()])
         
         
@@ -344,7 +359,16 @@ class VMCreator(object):
                 self.parse_expression(exp, st)
         
             if self.has_token(dec, 'symbol', '.'):
-                func_name = "{0}.{1}".format(dec[0].text.strip(), dec[2].text.strip())
+                s = st.get_symbol(dec[0].text.strip())
+                print("searching for var named " + dec[0].text.strip())
+                if s:
+                    kind = s.kind
+                    if kind == 'field':
+                        kind = 'this'
+                    self.add_line("push {0} {1}".format(kind, s.number))
+                    func_name = "{0}.{1}".format(s.s_type, dec[2].text.strip())
+                else:
+                    func_name = "{0}.{1}".format(dec[0].text.strip(), dec[2].text.strip())
             else:
                 func_name = "{0}.{1}".format(self.cur_class, dec[0].text.strip())
                 n_params += 1        
