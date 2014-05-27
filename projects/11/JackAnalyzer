@@ -205,12 +205,12 @@ class Parser(object):
         self.add_non_terminal("parameterList")
         
         if self.get_next_text() != ")":
-            self.add_terminal("keyword")
+            self.add_terminal()
             self.add_terminal("identifier")
             
             while self.get_next_text() != ")":
                 self.add_terminal("symbol",",")
-                self.add_terminal("keyword")
+                self.add_terminal()
                 self.add_terminal("identifier")
         
         else:
@@ -413,21 +413,15 @@ class Tokenizer(object):
         Receives list of tuples (<filename, file content>), and returns its asm translation.
         """
         lines = data.splitlines()
-        lines = self.remove_comment_lines(lines)
-        # no empty lines, no comment lines
+        
+        lines = [line.strip() for line in lines]
+        lines = [line for line in lines if line]
+        # no empty lines
         
         tree = self.lines_to_tokens(lines)
         
         return tree
        
-    def remove_comment_lines(self, lines):
-        new_lines = []
-        for line in lines:
-            line = line.strip()
-            if not line or not line.startswith(COMMENT_PREFIX):
-                new_lines.append(line)
-        return new_lines
-    
     def lines_to_tokens(self, lines):
         tree = etree.Element('tokens')
         is_big_comment = False
@@ -446,7 +440,7 @@ class Tokenizer(object):
                     else:
                         line = ""
                         
-                 # Handle strings
+                # Handle strings
                 elif line.startswith('"'):
                    idx = line.find('"', 1)
                    self.add_child(tree, "stringConstant", line[1:idx])
