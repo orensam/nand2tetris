@@ -44,6 +44,11 @@ class Symbol(object):
         self.s_type = s_type
         self.kind = kind
         self.number = number
+
+    def get_kind(self):
+        if self.kind == 'field':
+            return 'this'
+        return self.kind
                 
 class SymbolTable(object):
 
@@ -94,7 +99,6 @@ class VMCreator(object):
         for c in children:
             if c.tag == 'identifier':
                 self.cur_class = c.text.strip()
-                print ("cur class is " + self.cur_class)
             elif c.tag == 'classVarDec':
                 self.parse_classvardec(c)
             elif c.tag == 'subroutineDec':
@@ -104,8 +108,6 @@ class VMCreator(object):
     def parse_classvardec(self, dec):
         children = dec.getchildren()
         names = dec[2::2]
-        #dec.findall('identifier')
-    
         for name in names:
             s = None
             if children[0].text.strip() == 'static':
@@ -199,11 +201,9 @@ class VMCreator(object):
                 self.parse_return_statement(s, st)
             
     def parse_let_statement(self, dec, st):
+     
         var = st.get_symbol(dec[1].text.strip())
-        
-        area = var.kind
-        if area == 'field':
-            area = 'this'
+        area = var.get_kind()
         
         if dec[2].text.strip() == '[':
             self.parse_expression(dec[3], st)
@@ -264,32 +264,27 @@ class VMCreator(object):
         return ret
         
     def parse_do_statement(self, dec, st):
-        exp_list = dec.find('expressionList').findall('expression')
-        #exps_list = exp_list
-        n_params = len(exp_list)
-        for exp in exp_list:
-            self.parse_expression(exp, st)
         
+        n_params = 0
         if self.has_token(dec, 'symbol', '.'):
-            func_name = "{0}.{1}".format(dec[1].text.strip(), dec[3].text.strip())
-            print("searching for var named " + dec[1].text.strip())
+            #func_name = "{0}.{1}".format(dec[1].text.strip(), dec[3].text.strip())
             s = st.get_symbol(dec[1].text.strip())
             if s:
-                print("found var named " + dec[1].text.strip())
-                kind = s.kind
-                if kind == 'field':
-                    kind = 'this'
+                kind = s.get_kind()
                 self.add_line("push {0} {1}".format(kind, s.number))
                 func_name = "{0}.{1}".format(s.s_type, dec[3].text.strip())
-                print("in parse do statement. var name is " + s.name + '\n')
-                print("adding call to func " + func_name + '\n')                
-                n_params += 1
+                n_params = 1
             else:
-                print("DID NOT FIND var named " + dec[1].text.strip())
+                func_name = "{0}.{1}".format(dec[1].text.strip(), dec[3].text.strip())
         else:
             self.add_line("push pointer 0")
             func_name = "{0}.{1}".format(self.cur_class, dec[1].text.strip())
-            n_params += 1        
+            n_params = 1        
+
+        exp_list = dec.find('expressionList').findall('expression')
+        n_params += len(exp_list)
+        for exp in exp_list:
+            self.parse_expression(exp, st)
             
         self.add_line("call {0} {1}".format(func_name, n_params))
         self.add_line("pop temp 0")
@@ -334,17 +329,13 @@ class VMCreator(object):
         elif dec[0].tag == 'identifier' and len(dec) == 1: #varName
             #single identifier (var name)
             s = st.get_symbol(dec[0].text.strip())
-            kind = s.kind
-            if kind == 'field':
-                kind = 'this'
+            kind = s.get_kind()
             self.add_line("push {0} {1}".format(kind, s.number))
         
         elif dec[0].tag == 'identifier' and dec[1].text.strip() == '[': #varName[..]
             # array
             s = st.get_symbol(dec[0].text.strip())
-            kind = s.kind
-            if kind == 'field':
-                kind = 'this'
+            kind = s.get_kind()
                 
             self.parse_expression(dec[2], st)
             self.add_line("push {0} {1}".format(kind, s.number))
@@ -353,26 +344,29 @@ class VMCreator(object):
             self.add_line("push that 0")
             
         elif dec[0].tag == 'identifier' and dec[1].text.strip() in ['(','.']: #subroutinecall
-            exp_list = dec.find('expressionList').findall('expression')
-            n_params = len(exp_list)
-            for exp in exp_list:
-                self.parse_expression(exp, st)
-        
+            
+            n_params = 0
             if self.has_token(dec, 'symbol', '.'):
                 s = st.get_symbol(dec[0].text.strip())
-                print("searching for var named " + dec[0].text.strip())
                 if s:
                     kind = s.kind
                     if kind == 'field':
                         kind = 'this'
                     self.add_line("push {0} {1}".format(kind, s.number))
+                    n_params = 1
                     func_name = "{0}.{1}".format(s.s_type, dec[2].text.strip())
                 else:
                     func_name = "{0}.{1}".format(dec[0].text.strip(), dec[2].text.strip())
             else:
+                self.add_line("push pointer 0")
                 func_name = "{0}.{1}".format(self.cur_class, dec[0].text.strip())
-                n_params += 1        
+                n_params = 1        
             
+            exp_list = dec.find('expressionList').findall('expression')
+            n_params += len(exp_list)
+            for exp in exp_list:
+                self.parse_expression(exp, st)
+
             self.add_line("call {0} {1}".format(func_name, n_params))
             
         elif dec[0].text.strip() == "(":
@@ -556,7 +550,8 @@ class Parser(object):
         self.parse_expression()
         self.add_terminal("symbol", ")")
         self.add_terminal("symbol", "{")
-        self.parse_statements()
+        if self.get_next_text() != "}":
+            self.parse_statements()
         self.add_terminal("symbol", "}")
         if self.get_next_text() == "else":
             self.add_terminal("keyword", "else")
@@ -804,11 +799,10 @@ def main(path):
         #open(token_filename, 'w').write(tokens_to_str(tokens))
         
         parsed = parser.parse(tokens)
-        xml_filename = xml_filename_from_filename(fn)        
-        open(xml_filename, 'w').write(xml_to_str(parsed))
+        #xml_filename = xml_filename_from_filename(fn)        
+        #open(xml_filename, 'w').write(xml_to_str(parsed))
         
         vmc = VMCreator()
-        print("creating VM for file " + fn)
         vm_filename = vm_filename_from_filename(fn)        
         vm_str = vmc.create(parsed)
         open(vm_filename, 'w').write(vm_str)
