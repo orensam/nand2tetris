@@ -69,7 +69,7 @@ class SymbolTable(object):
         if self.father_table:                
             return self.father_table.get_symbol(name)    
             
-    
+        
     
 class VMCreator(object):
     
@@ -79,7 +79,11 @@ class VMCreator(object):
         self.class_st = SymbolTable()
         self.cur_func_type = ""
         self.result = ""                
-        self.label_counter = 0
+        #self.label_counter = 0
+        self.reset_labels()
+
+    def reset_labels(self):
+        self.label_counters = {"IF":0, "WHILE":0}
     
     def create(self, root):
         #self.root = root
@@ -124,7 +128,9 @@ class VMCreator(object):
             self.class_st.add_symbol(s)
     
     def parse_subroutine_dec(self, dec):
-
+        
+        self.reset_labels()
+        
         st = SymbolTable(self.class_st)
 
         children = dec.getchildren()
@@ -149,7 +155,7 @@ class VMCreator(object):
         children = dec.getchildren()
         for i in range(0, len(dec), 3):
             idx = st.counters['argument']
-            st.add_symbol(Symbol(dec[i+1].text.strip(), 'argument', dec[i], idx))
+            st.add_symbol(Symbol(dec[i+1].text.strip(), 'argument', dec[i].text.strip(), idx))
             
     
     def parse_subroutine_vardecs(self, dec, st):
@@ -221,18 +227,18 @@ class VMCreator(object):
     def parse_if_statement(self, dec, st):
         self.parse_expression(dec[2], st)
         
-        true_label = self.get_label("IF_TRUE")        
+        label_number = self.get_label_number("IF")
+        true_label = "IF_TRUE{0}".format(label_number)
+        false_label = "IF_FALSE{0}".format(label_number)
+        
         self.add_line("if-goto {0}".format(true_label))
-        
-        false_label = self.get_label("IF_FALSE")
         self.add_line("goto {0}".format(false_label))
-        
         self.add_line("label {0}".format(true_label))
         
         self.parse_statements(dec[5], st)
         
         if self.has_token(dec, 'keyword', 'else'):
-            end_label = self.get_label("IF_END")
+            end_label = "IF_END{0}".format(label_number)
             self.add_line("goto {0}".format(end_label))
             self.add_line("label {0}".format(false_label))
             self.parse_statements(dec[9], st)
@@ -248,8 +254,10 @@ class VMCreator(object):
                     return True
 
     def parse_while_statement(self, dec, st):
-        exp_label = self.get_label("WHILE_EXP")
-        end_label = self.get_label("WHILE_END")
+        label_number = self.get_label_number("WHILE")
+        exp_label = "WHILE_EXP{0}".format(label_number)
+        end_label = "WHILE_END{0}".format(label_number)
+
         self.add_line("label {0}".format(exp_label))
         self.parse_expression(dec[2], st)
         self.add_line("not")
@@ -258,9 +266,20 @@ class VMCreator(object):
         self.add_line("goto {0}".format(exp_label))
         self.add_line("label {0}".format(end_label))
     
-    def get_label(self, s):
-        ret = "{0}.{1}".format(s, self.label_counter)
-        self.label_counter += 1
+    def get_label_number(self, kind):
+        ret = self.label_counters[kind]
+        self.label_counters[kind] += 1
+        return ret
+        
+    #def get_label(self, kind, subkind):
+        
+        #ret = "{0}_{1}{2}".format(kind, subkind, self.label_counters[kind])
+        #self.label_counters[kind] += 1
+        
+        #ret = "{0}{1}".format(s, self.label_counters[s])
+        #self.label_counters[s] += 1
+        #ret = "{0}.{1}".format(s, self.label_counter)
+        #self.label_counter += 1
         return ret
         
     def parse_do_statement(self, dec, st):
@@ -349,9 +368,7 @@ class VMCreator(object):
             if self.has_token(dec, 'symbol', '.'):
                 s = st.get_symbol(dec[0].text.strip())
                 if s:
-                    kind = s.kind
-                    if kind == 'field':
-                        kind = 'this'
+                    kind = s.get_kind()
                     self.add_line("push {0} {1}".format(kind, s.number))
                     n_params = 1
                     func_name = "{0}.{1}".format(s.s_type, dec[2].text.strip())
@@ -799,8 +816,8 @@ def main(path):
         #open(token_filename, 'w').write(tokens_to_str(tokens))
         
         parsed = parser.parse(tokens)
-        #xml_filename = xml_filename_from_filename(fn)        
-        #open(xml_filename, 'w').write(xml_to_str(parsed))
+        xml_filename = xml_filename_from_filename(fn)        
+        open(xml_filename, 'w').write(xml_to_str(parsed))
         
         vmc = VMCreator()
         vm_filename = vm_filename_from_filename(fn)        
