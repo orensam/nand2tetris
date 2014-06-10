@@ -7,9 +7,12 @@
  * A library for handling user input from the keyboard.
  */
 class Keyboard {
-
+    
+    
     /** Initializes the keyboard. */
-    function void init() {
+    function void init() 
+    {
+        return;
     } 
 
     /**
@@ -32,7 +35,9 @@ class Keyboard {
      * ESC = 140
      * F1 - F12 = 141 - 152
      */
-    function char keyPressed() {
+    function char keyPressed() 
+    {
+        return Memory.peek(24576);
     }
 
     /**								
@@ -40,21 +45,121 @@ class Keyboard {
      * waits until a key is pressed and then released, then echoes
      * the key to the screen, and returns the value of the pressed key.
      */
-    function char readChar() {
+    function char readChar()
+    {
+        var char c;
+        var char d;
+        
+        let c = Keyboard.keyPressed(); 
+        while (c = 0)
+        {
+            let c = Keyboard.keyPressed(); 
+            if (c > 0)
+            {
+                   let d = c;
+                   let c = Keyboard.keyPressed(); 
+                   while (c > 0)
+                   {
+                        let c = Keyboard.keyPressed();      
+                   }
+                   do Output.printChar(d);
+                   let c = d;
+            }
+        }
+        return d;
     }
 
     /**								
      * Prints the message on the screen, reads the next line
      * (until a newline character) from the keyboard, and returns its value.
      */
-    function String readLine(String message) {
-    }   
+    function String readLine(String message)
+    {
+        var String ret;
+        var char c;
+        var int strlen;
+        
+        
+        do Output.printString(message);
+        
+        let c = Keyboard.readChar();
+        let strlen = 32;
+        let ret = String.new(strlen);
+        
+        while((c < String.newLine()) | (c > String.newLine()))
+        {
+            if (c = String.backSpace())
+            {
+                do ret.eraseLastChar();
+            }
+            if (c < String.newLine())
+            {
+                do ret.appendChar(c);
+            }
+            if (ret.length() = strlen)
+            {
+                let ret = Keyboard.get_longer_str(ret);
+                let strlen = 2 * strlen;
+            }
+            let c = Keyboard.readChar();
+        }
+        return ret;
+    }
+    
+    function String get_longer_str(String s)
+    {
+        var String tmpstr;
+        var int i;
+        
+        let tmpstr = String.new(2 * s.length());
+        while (i < s.length())
+        {
+            do tmpstr.appendChar(s.charAt(i));
+            let i = i + 1;
+        }
+        do s.dispose();
+        return tmpstr;
+    }
 
     /**								
      * Prints the message on the screen, reads the next line
      * (until a newline character) from the keyboard, and returns its
      * integer value (until the first non numeric character).
      */
-    function int readInt(String message) {
+    function int readInt(String message)
+    {
+        var String ret;
+        var char c;
+        var int x;
+        var int strlen;
+    
+        do Output.printString(message);
+        
+        let strlen = 32;
+        let ret = String.new(strlen);
+
+        let c = Keyboard.readChar();
+        
+        while(((c > 47) & (c < 58)) | (c = 45) | (c > String.newLine()))
+        {
+            if (c = String.backSpace())
+            {
+                do ret.eraseLastChar();
+            }            
+            if (((c > 47) & (c < 58)) | (c = 45))
+            {
+                do ret.appendChar(c);
+            }
+ 
+            if (ret.length() = strlen)
+            {
+                let ret = Keyboard.get_longer_str(ret);
+                let strlen = 2 * strlen;
+            }
+            
+            let c = Keyboard.readChar();
+        }
+        let x = ret.intValue();
+        return x;
     }
 }
