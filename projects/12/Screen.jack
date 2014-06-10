@@ -7,22 +7,37 @@
  * Graphic screen library.
  */
 class Screen {
-
+    
+    static bool color;
+    
     /** Initializes the Screen. */
-    function void init() {
+    function void init() 
+    {
+        
     }
 
     /** Erases the whole screen. */
-    function void clearScreen() {
+    function void clearScreen() 
+    {
+        
     }
 
     /** Sets the color to be used in further draw commands
      *  where white = false, black = true. */
-    function void setColor(boolean b) {
+    function void setColor(boolean b) 
+    {
+        let color = b;
     }
 
     /** Draws the (x, y) pixel. */
-    function void drawPixel(int x, int y) {
+    function void drawPixel(int x, int y) 
+    {
+        var int address;
+        var int cur_val;
+        
+        let address = 16384 + (y*32) + (x/16);
+        let cur_val = Memory.peek(address);
+        
     }
 
     /** Draws a line from (x1, y1) to (x2, y2). */
