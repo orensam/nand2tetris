@@ -7,54 +7,160 @@
  * Represents a String object. Implements the String type.
  */
 class String {
-
+    
+    field Array chars;
+    field int len;
+    field int max_len;
+    
     /** Constructs a new empty String with a maximum length of maxLength. */
-    constructor String new(int maxLength) {
+    constructor String new(int maxLength) 
+    {
+        let max_len = maxLength;
+        if (max_len > 0)
+        {
+            let chars = Array.new(max_len);
+        }
+        let len = 0;
+        return this;
     }
 
     /** De-allocates the string and frees its space. */
-    method void dispose() {
+    method void dispose() 
+    {
+        if (max_len > 0)
+        {
+            do chars.dispose();
+        }
+        do Memory.deAlloc(this);
+        return;
     }
 
     /** Returns the current length of this String. */
-    method int length() {
+    method int length() 
+    {
+        return len;
     }
 
     /** Returns the character at location j. */
-    method char charAt(int j) {
+    method char charAt(int j) 
+    {
+        return chars[j];
     }
 
     /** Sets the j'th character of this string to be c. */
-    method void setCharAt(int j, char c) {
+    method void setCharAt(int j, char c) 
+    {
+        let chars[j] = c;
+        return;
     }
 
     /** Appends the character c to the end of this String.
      *  Returns this string as the return value. */
-    method String appendChar(char c) {
+    method String appendChar(char c) 
+    {
+        let chars[len] = c;
+        let len = len + 1;
+        return this;
     }
 
     /** Erases the last character from this String. */
-    method void eraseLastChar() {
+    method void eraseLastChar() 
+    {
+        let len = len - 1;
+        return;
     }
 
     /** Returns the integer value of this String until the first non
      *  numeric character. */
-    method int intValue() {
+    method int intValue() 
+    {
+        var int i;
+        var int ret;
+        var char c;
+        var bool is_neg;
+        
+        let i = 0;
+        let ret = 0;
+        
+        let is_neg = false;
+        if (charAt(0) = 45) // minus
+        {
+            let is_neg = true;
+            let i = i + 1;
+        }
+        
+        let c = charAt(i);
+        while((c > 47) & (c < 58) & (i < len))
+        {
+            let ret = (ret * 10) + (c - 48);
+            let i = i + 1;
+            let c = charAt(i);
+        }
+        
+        if (is_neg)
+        {
+            let ret = -ret;
+        }
+
+        return ret;
     }
 
     /** Sets this String to hold a representation of the given number. */
-    method void setInt(int number) {
+    method void setInt(int number) 
+    {
+        var String tmp;
+        var bool is_neg;
+        
+        let tmp = String.new(max_len);
+        
+        let is_neg = false;
+        if (number < 0)
+        {
+            let is_neg = true;
+            let number = -number;
+        }
+        
+        while (number > 0)
+        {
+            do tmp.appendChar(String.mod10(number) + 48);
+            let number = number / 10;
+        }
+        
+        if (is_neg)
+        {
+            do tmp.appendChar(45);
+        }
+        
+        let len = 0;
+        
+        while (len < tmp.length())
+        {
+            do appendChar(tmp.charAt(tmp.length() - len - 1));
+        }
+        
+        return;
+    }
+    
+    function int mod10(int x)
+    {
+        return x - ((x / 10) * 10);
     }
 
     /** Returns the new line character. */
-    function char newLine() {
+    function char newLine() 
+    {
+        return 128;
     }
 
     /** Returns the backspace character. */
-    function char backSpace() {
+    function char backSpace() 
+    {
+        return 129;
     }
 
     /** Returns the double quote (") character. */
-    function char doubleQuote() {
+    function char doubleQuote() 
+    {
+        return 34;
     }
 }
