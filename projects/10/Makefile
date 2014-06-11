@@ -1,3 +1,3 @@
 # Empty makefile - Python program
 
-all: JackAnalizer
+all: JackAnalyzer
