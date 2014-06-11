@@ -48,23 +48,21 @@ class Screen {
     
     function void initPowers()
     {
+        var int i;
+        var int val;
+        
+        let val = 1;
+        let i = 0;
+        
         let powers = Array.new(16);
-        let powers[0] = 1;
-        let powers[1] = 2;
-        let powers[2] = 4;
-        let powers[3] = 8;
-        let powers[4] = 16;
-        let powers[5] = 32;
-        let powers[6] = 64;
-        let powers[7] = 128;
-        let powers[8] = 256;
-        let powers[9] = 512;
-        let powers[10] = 1024;
-        let powers[11] = 2048;
-        let powers[12] = 4096;
-        let powers[13] = 8192;
-        let powers[14] = 16384;
-        let powers[15] = powers[14] + powers[14];
+        
+        while (i < 16)
+        {
+            let powers[i] = val;
+            let val = val + val;
+            let i = i + 1;
+        }
+        
         return;
     }
     
@@ -91,45 +89,149 @@ class Screen {
         
         return;
     }
-
+    
+    function void drawVerticalLine(int x, int y1, int y2)
+    {
+        var int tmp;
+        
+        if (y1 > y2)
+        {
+            let tmp = y2;
+            let y2 = y1;
+            let y1 = tmp;            
+        }
+        
+        while (y1 < (y2 + 1))
+        {
+            do Screen.drawPixel(x, y1);
+            let y1 = y1 + 1;
+        }
+        
+        return;
+    }
+    
+    function void drawHorizontalLine(int y, int x1, int x2)
+    {
+        
+        var int tmp;
+        
+        if (x1 > x2)
+        {
+            let tmp = x2;
+            let x2 = x1;
+            let x1 = tmp;            
+        }
+        
+        while (x1 < (x2 + 1))
+        {
+            do Screen.drawPixel(x1, y);
+            let x1 = x1 + 1;
+        }
+        return;
+    }
+    
     /** Draws a line from (x1, y1) to (x2, y2). */
     function void drawLine(int x1, int y1, int x2, int y2) 
     {
         var int dx, dy, a, b, tmp;
         
-        if (x2 < x1)
+        if (x1 = x2)
+        {
+            do Screen.drawVerticalLine(x1, y1, y2);
+            return;
+        }
+        
+        if (y1 = y2)
+        {
+            do Screen.drawHorizontalLine(y1, x1, x2);
+            return;
+        }
+        
+        
+        // Decline
+        if ( ( (x2 < x1) & (y2 < y1) ) | ((x2 > x1) & (y2 > y1) ))
+        {
+            if (((x2 < x1) & (y2 < y1)))
+            {
+                let tmp = x2;
+                let x2 = x1;
+                let x1 = tmp;
+                
+                let tmp = y2;
+                let y2 = y1;
+                let y1 = tmp;
+            }
+
+            let dx = x2 - x1;
+            let dy = y2 - y1;
+            
+            let a = 0;
+            let b = 0;
+            let tmp = 0; // This is "ady_minus_bdx"
+            
+            while ((a < (dx + 1)) | (b < (dy + 1)))
+            {
+                do Screen.drawPixel(x1 + a, y1 + b);
+                if (tmp < 0)
+                {
+                    let a = a + 1;
+                    let tmp = tmp + dy;
+                }
+                else
+                {
+                    let b = b + 1;
+                    let tmp = tmp -dx;
+                }
+            }
+            
+            return;
+        }
+        
+        // Incline
+        
+        if (x1 > x2)
         {
             let tmp = x2;
             let x2 = x1;
             let x1 = tmp;
-        }
-        
-        if (y2 < y1)
-        {
+            
             let tmp = y2;
             let y2 = y1;
-            let y1 = tmp;
+            let y1 = tmp;            
         }
         
         let dx = x2 - x1;
         let dy = y2 - y1;
         
         let a = 0;
-        let b = 0;
+        let b = dy;
         let tmp = 0; // This is "ady_minus_bdx"
         
-        while ((a < (dx + 1)) | (b < (dy + 1)))
+        while ((a < (dx + 1)) | (b > 0))
         {
             do Screen.drawPixel(x1 + a, y1 + b);
-            if (tmp < 0)
+            
+            if ( ((x1+a) < x2) & ((y1-b) > y2))
             {
                 let a = a + 1;
-                let tmp = tmp + dy;
             }
             else
             {
-                let b = b + 1;
-                let tmp = tmp -dx;
+                let b = b - 1;
+            }
+            
+            if(false)
+            {
+                if (tmp < 0)
+                {
+                    let a = a + 1;
+                    let tmp = tmp + dy;
+                }
+                else
+                {
+                    let b = b - 1;
+                    let tmp = tmp - dx;
+                }
             }
         }
         
@@ -147,7 +249,7 @@ class Screen {
             let tmp = y2;
             let y2 = y1;
             let y1 = tmp;
-        }
+        }   
         
         while(y1 < (y2 + 1))
         {
@@ -168,7 +270,7 @@ class Screen {
         while (dy < (r+1))
         {
             let dx = Math.sqrt((r*r)-(dy*dy));
-            do Screen.drawLine(cx - dx, cy + dy, cx + dx, cy + dy);
+            do Screen.drawLine( (cx-dx), (cy+dy), (cx+dx), (cy+dy));
             let dy = dy + 1;
         }
         
