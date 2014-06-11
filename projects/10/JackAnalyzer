@@ -198,7 +198,8 @@ class Parser(object):
         self.parse_expression()
         self.add_terminal("symbol", ")")
         self.add_terminal("symbol", "{")
-        self.parse_statements()
+        if self.get_next_text() != "}":
+            self.parse_statements()
         self.add_terminal("symbol", "}")
         if self.get_next_text() == "else":
             self.add_terminal("keyword", "else")
