@@ -9,17 +9,28 @@
 class Screen {
     
     static bool color;
+    static int SCR;
+    static Array powers;
+    static int max_x;
+    static int max_y;
     
     /** Initializes the Screen. */
     function void init() 
     {
-        
+        let SCR = 16384;
+        let max_x = 511;
+        let max_y = 255;
+        do Screen.initPowers();
+        do Screen.setColor(true);
+        return;
     }
 
     /** Erases the whole screen. */
     function void clearScreen() 
     {
-        
+        do Screen.setColor(false);
+        do Screen.drawRectangle(0, 0, max_x, max_y);
+        return;
     }
 
     /** Sets the color to be used in further draw commands
@@ -27,29 +38,145 @@ class Screen {
     function void setColor(boolean b) 
     {
         let color = b;
+        return;
     }
-
+    
+    function int mod16(int x)
+    {
+        return (x & 15);
+    }
+    
+    function void initPowers()
+    {
+        let powers = Array.new(16);
+        let powers[0] = 1;
+        let powers[1] = 2;
+        let powers[2] = 4;
+        let powers[3] = 8;
+        let powers[4] = 16;
+        let powers[5] = 32;
+        let powers[6] = 64;
+        let powers[7] = 128;
+        let powers[8] = 256;
+        let powers[9] = 512;
+        let powers[10] = 1024;
+        let powers[11] = 2048;
+        let powers[12] = 4096;
+        let powers[13] = 8192;
+        let powers[14] = 16384;
+        let powers[15] = powers[14] + powers[14];
+        return;
+    }
+    
     /** Draws the (x, y) pixel. */
     function void drawPixel(int x, int y) 
     {
-        var int address;
-        var int cur_val;
+        var int address, cur_val, change_bit, cur_bit, new_val;
         
-        let address = 16384 + (y*32) + (x/16);
+        let address = SCR + (y*32) + (x/16);
         let cur_val = Memory.peek(address);
         
+        let change_bit = powers[Screen.mod16(x)];
+        let cur_bit = cur_val & change_bit;
+        
+        if ( (cur_bit > 0) & (~color))
+        {
+            let new_val = cur_val - change_bit;
+        }
+        if ((cur_bit = 0) & (color))
+        {
+            let new_val = cur_val + change_bit;
+        }
+        do Memory.poke(address, new_val);
+        
+        return;
     }
 
     /** Draws a line from (x1, y1) to (x2, y2). */
-    function void drawLine(int x1, int y1, int x2, int y2) {
+    function void drawLine(int x1, int y1, int x2, int y2) 
+    {
+        var int dx, dy, a, b, tmp;
+        
+        if (x2 < x1)
+        {
+            let tmp = x2;
+            let x2 = x1;
+            let x1 = tmp;
+        }
+        
+        if (y2 < y1)
+        {
+            let tmp = y2;
+            let y2 = y1;
+            let y1 = tmp;
+        }
+        
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+        
+        let a = 0;
+        let b = 0;
+        let tmp = 0; // This is "ady_minus_bdx"
+        
+        while ((a < (dx + 1)) | (b < (dy + 1)))
+        {
+            do Screen.drawPixel(x1 + a, y1 + b);
+            if (tmp < 0)
+            {
+                let a = a + 1;
+                let tmp = tmp + dy;
+            }
+            else
+            {
+                let b = b + 1;
+                let tmp = tmp -dx;
+            }
+        }
+        
+        return;
     }
 
     /** Draws a filled rectangle where the top left corner
      *  is (x1, y1) and the bottom right corner is (x2, y2). */
-    function void drawRectangle(int x1, int y1, int x2, int y2) {
+    function void drawRectangle(int x1, int y1, int x2, int y2) 
+    {
+        var int tmp;
+        
+        if (y2 < y1)
+        {
+            let tmp = y2;
+            let y2 = y1;
+            let y1 = tmp;
+        }
+        
+        while(y1 < (y2 + 1))
+        {
+            do Screen.drawLine(x1, y1, x2, y1);
+            let y1 = y1 + 1;
+        }
+        
+        return;
     }
 
     /** Draws a filled circle of radius r around (cx, cy). */
-    function void drawCircle(int cx, int cy, int r) {
+    function void drawCircle(int cx, int cy, int r) 
+    {
+        var int dx, dy;
+        
+        let dy = -r;
+        
+        while (dy < (r+1))
+        {
+            let dx = Math.sqrt((r*r)-(dy*dy));
+            do Screen.drawLine(cx - dx, cy + dy, cx + dx, cy + dy);
+            let dy = dy + 1;
+        }
+        
+        return;
     }
 }
+
+
+
+
+
