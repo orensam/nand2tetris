@@ -75,15 +75,14 @@ class Screen {
         let cur_val = Memory.peek(address);
         
         let change_bit = powers[Screen.mod16(x)];
-        let cur_bit = cur_val & change_bit;
-        
-        if ( (cur_bit > 0) & (~color))
+
+        if (color)
         {
-            let new_val = cur_val - change_bit;
+            let new_val = cur_val | change_bit;
         }
-        if ((cur_bit = 0) & (color))
+        else
         {
-            let new_val = cur_val + change_bit;
+            let new_val = cur_val & (~change_bit);
         }
         do Memory.poke(address, new_val);
         
@@ -149,7 +148,7 @@ class Screen {
         
         
         // Decline
-        if ( ( (x2 < x1) & (y2 < y1) ) | ((x2 > x1) & (y2 > y1) ))
+        if (((x2 < x1) & (y2 < y1) ) | ((x2 > x1) & (y2 > y1) ))
         {
             if (((x2 < x1) & (y2 < y1)))
             {
@@ -162,17 +161,19 @@ class Screen {
                 let y1 = tmp;
             }
 
-            let dx = x2 - x1;
-            let dy = y2 - y1;
+            // from here assuming x1<x2, y1<y2
+            
+            let dx = x2 - x1; // dx > 0
+            let dy = y2 - y1; // dy > 0
             
             let a = 0;
             let b = 0;
-            let tmp = 0; // This is "ady_minus_bdx"
+            let tmp = 0; // This is "a*dy_minus_b*dx"
             
             while ((a < (dx + 1)) | (b < (dy + 1)))
             {
                 do Screen.drawPixel(x1 + a, y1 + b);
-                if (tmp < 0)
+                if (tmp < 0) // i.e a/dx < b/dy
                 {
                     let a = a + 1;
                     let tmp = tmp + dy;
@@ -200,39 +201,29 @@ class Screen {
             let y1 = tmp;            
         }
         
-        let dx = x2 - x1;
-        let dy = y2 - y1;
+        // from here assuming x1<x2, y1>y2
+        
+        let dx = x2 - x1; // dx > 0
+        let dy = y2 - y1; // dy < 0
         
         let a = 0;
-        let b = dy;
+        let b = 0;
         let tmp = 0; // This is "ady_minus_bdx"
         
-        while ((a < (dx + 1)) | (b > 0))
+        while ((a < (dx + 1)) | (b > (dy - 1)))
         {
             do Screen.drawPixel(x1 + a, y1 + b);
             
-            if ( ((x1+a) < x2) & ((y1-b) > y2))
+            if (tmp < 0) // i.e a/dx < b/dy
             {
-                let a = a + 1;
-            }
-            else
-            {
-                let b = b - 1;
-            }
-            
-            if(false)
-            {
-                if (tmp < 0)
-                {
-                    let a = a + 1;
-                    let tmp = tmp + dy;
-                }
-                else
-                {
-                    let b = b - 1;
-                    let tmp = tmp - dx;
-                }
-            }
+    			let b = b - 1;
+    			let tmp = tmp + dx;
+    		}
+    		else
+    		{
+    			let a = a + 1;
+    			let tmp = tmp + dy;
+            }        
         }
         
         return;
