@@ -8,10 +8,11 @@
  */
 class Keyboard {
     
-    
+    static int KBD;
     /** Initializes the keyboard. */
     function void init() 
     {
+        let KBD = 24576;
         return;
     } 
 
@@ -37,7 +38,7 @@ class Keyboard {
      */
     function char keyPressed() 
     {
-        return Memory.peek(24576);
+        return Memory.peek(KBD);
     }
 
     /**								
@@ -49,7 +50,8 @@ class Keyboard {
     {
         var char c;
         var char d;
-        
+        do Output.printChar(0);
+        do Output.moveCursorBack();
         let c = Keyboard.keyPressed(); 
         while (c = 0)
         {
@@ -79,11 +81,10 @@ class Keyboard {
         var char c;
         var int strlen;
         
-        
         do Output.printString(message);
         
         let c = Keyboard.readChar();
-        let strlen = 32;
+        let strlen = 64;
         let ret = String.new(strlen);
         
         while((c < String.newLine()) | (c > String.newLine()))
@@ -92,34 +93,30 @@ class Keyboard {
             {
                 do ret.eraseLastChar();
             }
-            if (c < String.newLine())
+            else
             {
                 do ret.appendChar(c);
             }
-            if (ret.length() = strlen)
-            {
-                let ret = Keyboard.get_longer_str(ret);
-                let strlen = 2 * strlen;
-            }
             let c = Keyboard.readChar();
         }
+        
         return ret;
     }
     
-    function String get_longer_str(String s)
-    {
-        var String tmpstr;
-        var int i;
-        
-        let tmpstr = String.new(2 * s.length());
-        while (i < s.length())
-        {
-            do tmpstr.appendChar(s.charAt(i));
-            let i = i + 1;
-        }
-        do s.dispose();
-        return tmpstr;
-    }
+//    function String get_longer_str(String s)
+//    {
+//        var String tmpstr;
+//        var int i;
+//        
+//        let tmpstr = String.new(2 * s.length());
+//        while (i < s.length())
+//        {
+//            do tmpstr.appendChar(s.charAt(i));
+//            let i = i + 1;
+//        }
+//        do s.dispose();
+//        return tmpstr;
+//    }
 
     /**								
      * Prints the message on the screen, reads the next line
@@ -129,37 +126,8 @@ class Keyboard {
     function int readInt(String message)
     {
         var String ret;
-        var char c;
-        var int x;
-        var int strlen;
     
-        do Output.printString(message);
-        
-        let strlen = 32;
-        let ret = String.new(strlen);
-
-        let c = Keyboard.readChar();
-        
-        while(((c > 47) & (c < 58)) | (c = 45) | (c > String.newLine()))
-        {
-            if (c = String.backSpace())
-            {
-                do ret.eraseLastChar();
-            }            
-            if (((c > 47) & (c < 58)) | (c = 45))
-            {
-                do ret.appendChar(c);
-            }
- 
-            if (ret.length() = strlen)
-            {
-                let ret = Keyboard.get_longer_str(ret);
-                let strlen = 2 * strlen;
-            }
-            
-            let c = Keyboard.readChar();
-        }
-        let x = ret.intValue();
-        return x;
+        let ret = Keyboard.readLine(message);
+        return ret.intValue();
     }
 }
