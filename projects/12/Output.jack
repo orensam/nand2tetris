@@ -272,7 +272,7 @@ class Output {
     {
         var String s;
         
-        let s = String.new(512);
+        let s = String.new(10);
         do s.setInt(i);
         
         do Output.printString(s);
