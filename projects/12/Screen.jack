@@ -66,12 +66,26 @@ class Screen {
         return;
     }
     
+    function int getPixelAddress(int x, int y)
+    {
+        return SCR + (y*32) + (x/16);
+    }
+    
     /** Draws the (x, y) pixel. */
     function void drawPixel(int x, int y) 
     {
-        var int address, cur_val, change_bit, cur_bit, new_val;
+        var int address;
         
-        let address = SCR + (y*32) + (x/16);
+        let address = Screen.getPixelAddress(x, y);
+        
+        do Screen.drawPixelInAddress(address, x);
+        
+        return;
+    }
+    
+    function void drawPixelInAddress(int address, int x)
+    {
+        var int cur_val, change_bit, cur_bit, new_val;
         let cur_val = Memory.peek(address);
         
         let change_bit = powers[Screen.mod16(x)];
@@ -85,7 +99,6 @@ class Screen {
             let new_val = cur_val & (~change_bit);
         }
         do Memory.poke(address, new_val);
-        
         return;
     }
     
@@ -109,10 +122,10 @@ class Screen {
         return;
     }
     
-    function void drawHorizontalLine(int y, int x1, int x2)
+    function void drawHorizontalLinePixels(int y, int x1, int x2)
     {
         
-        var int tmp;
+        var int tmp, address;
         
         if (x1 > x2)
         {
@@ -121,10 +134,44 @@ class Screen {
             let x1 = tmp;            
         }
         
+        let address = Screen.getPixelAddress(x1, y);
+        
         while (x1 < (x2 + 1))
         {
-            do Screen.drawPixel(x1, y);
+            do Screen.drawPixelInAddress(address, x1);
             let x1 = x1 + 1;
+            if (Screen.mod16(x1) = 0)
+            {
+                let address = address + 1;
+            }
+        }
+        return;
+    }
+    
+    function void drawHorizontalLine(int y, int x1, int x2)
+    {
+        var int bulk_start, bulk_end, address;
+        
+        if ((x2 - x1) > 15)
+        {
+            let bulk_start = x1 + (16 - Screen.mod16(x1));
+            let bulk_end = x2 - Screen.mod16(x2);
+
+            let address = Screen.getPixelAddress(bulk_start, y);
+            
+            while (bulk_start < bulk_end)
+            {
+                do Memory.poke(address, color);
+                let address = address + 1;
+                let bulk_start = bulk_start + 16;
+            }
+            
+            do Screen.drawHorizontalLinePixels(y, x1, bulk_start);
+            do Screen.drawHorizontalLinePixels(y, bulk_end, x2);
+        }
+        else
+        {
+            do Screen.drawHorizontalLinePixels(y, x1, x2);
         }
         return;
     }
