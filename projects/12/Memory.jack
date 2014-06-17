@@ -19,7 +19,7 @@ class Memory {
         let mem = 0;
         let heap_base = 2048;
         let heap_end = 16383;
-        let free = heap_base;
+        let free = heap_base + 2;
         let mem[free - 1] = heap_end - heap_base - 2 ;
         let mem[free - 2] = -1;
         return;
@@ -54,7 +54,7 @@ class Memory {
         }
         
         // There's more space in the block
-        if (mem[ptr - 1] > size + 3)
+        if (mem[ptr - 1] > size + 2)
         {
             if (prev_ptr > -1)
             {
@@ -84,7 +84,7 @@ class Memory {
             }
         }
         
-        let mem[ptr - 1] = size + 2;
+        let mem[ptr - 1] = size;
         return ptr;
     }
 
