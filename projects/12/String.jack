@@ -27,10 +27,6 @@ class String {
     /** De-allocates the string and frees its space. */
     method void dispose() 
     {
-        if (max_len > 0)
-        {
-            do chars.dispose();
-        }
         do Memory.deAlloc(this);
         return;
     }
