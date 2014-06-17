@@ -204,6 +204,11 @@ class Output {
             return;
         }
         
+        if (c > String.newLine())
+        {
+            let c = 0;
+        }
+        
         let rightmost_x = (8 * (cursor_j + 1)) - 1;
         let x = rightmost_x - 7;
         let y = 11 * cursor_i;
@@ -215,8 +220,14 @@ class Output {
             let line = map[i];
             while (x < (rightmost_x + 1)) 
             {
-                if (~Output.isEven(line))
+                if (Output.isEven(line))
                 {
+                    do Screen.setColor(false);
+                    do Screen.drawPixel(x, y + i);
+                }
+                else
+                {
+                    do Screen.setColor(true);
                     do Screen.drawPixel(x, y + i);
                 }
                 let x = x + 1;
@@ -274,6 +285,8 @@ class Output {
     /** Advances the cursor to the beginning of the next line. */
     function void println() 
     {
+        do Output.printChar(32);
+        do Output.moveCursorBack();
         if (cursor_i = 22)
         {
             do Output.moveCursor(0,0);
@@ -316,8 +329,10 @@ class Output {
     /** Moves the cursor one column back. */
     function void backSpace() 
     {
-        do Output.moveCursorBack();
         do Output.printChar(32);
+        do Output.moveCursorBack();
+        do Output.moveCursorBack();
+        do Output.printChar(0);
         do Output.moveCursorBack();
         return;
     }
