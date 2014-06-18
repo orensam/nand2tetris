@@ -1,0 +1,55 @@
+romig, orensam
+===============================================================================
+Romi Gelman, ID 302170089, romi.gelman@mail.huji.ac.il
+Oren Samuel, ID 200170694, oren.samuel@mail.huji.ac.il
+===============================================================================
+
+               Project 12 - Operating System
+               -----------------------------
+
+Submitted Files
+---------------
+
+Array.jack - Array handling.
+Keyboard.jack - Keyboard input handling.
+Math.jack - Mathematical functions (multiply, divide etc).
+Memory.jack - Memory allocation and deallocation handling.
+Output.jack - Textual output handling.
+Screen.jack - Graphics handling.
+String.jack - Strings handling.
+Sys.jack - System functions.
+
+README - This file.
+
+
+Remarks
+-------
+
+We modified the API slightly in two modules (added some functions):
+
+Output.jack:
+
+moveCursorForward() - Moves the cursor one column forward.
+
+moveCursorBack() - Moves the cursor one column back.
+
+
+Screen.jack
+
+getPixelAddress(int x, int y) - Retrieves the address of the pixel at screen coordinate (x,y).
+In order not to use multiplication here, we multiplied by 32 using addition,
+and divided by 16 using bitmasks (in functions mult32() and div16()).
+
+drawPixelInAddress(int address, int x) - Draws a pixel (in the current color) 
+at the specified address. x is the screen x coordinate of the pixel.
+
+
+We made Output.printChar() more efficient by writing each line of a character as a block,
+instead of pixel by pixel.
+
+We made Screen.drawLine() more efficient by drawing horizontal lines block by block, instead
+of pixel by pixel. This also greatly improves the performance of drawRectangle() and drawCircle().
+
+
+
+
