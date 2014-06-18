@@ -180,6 +180,11 @@ class Output {
      *  and erases the character that was there. */
     function void moveCursor(int i, int j) 
     {
+        if ( (i < 0) | (i > 22) | (j < 0) | (j > 63) )
+        {
+            do Sys.error(20);
+        }
+        
         let cursor_i = i;        
         let cursor_j = j;
         return;
@@ -258,8 +263,9 @@ class Output {
     {
         var int i;
         
+        
         while (i < s.length())
-        {
+        {          
             do Output.printChar(s.charAt(i));
             let i = i + 1;
         }
@@ -272,7 +278,7 @@ class Output {
     {
         var String s;
         
-        let s = String.new(10);
+        let s = String.new(32);
         do s.setInt(i);
         
         do Output.printString(s);
