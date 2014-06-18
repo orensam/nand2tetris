@@ -44,13 +44,24 @@ class Memory {
     function int alloc(int size) 
     {
         var int ptr, new_block, prev_ptr;
+        
+        if (size < 0)
+        {
+            do Sys.error(5);
+        }
+        
         let ptr = free;
         let prev_ptr = -1;
         
-        while (mem[ptr - 1] < size)
+        while ( (mem[ptr - 1] < size))
         {
             let prev_ptr = ptr;
             let ptr = mem[ptr - 2];
+        }
+        
+        if (ptr = -1)
+        {
+            do Sys.error(6);
         }
         
         // There's more space in the block
@@ -85,14 +96,14 @@ class Memory {
         }
         
         let mem[ptr - 1] = size;
-        return ptr;
+        return ptr - 1;
     }
 
     /** De-allocates the given object and frees its space. */
     function void deAlloc(int object) 
     {
-        let mem[object - 2] = free;
-        let free = object;
+        let mem[object - 1] = free;
+        let free = object  + 1;
         return;
     }    
 }
