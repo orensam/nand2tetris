@@ -159,6 +159,7 @@ class String {
         return;
     }
     
+    /** Returns x mod 10 */
     function int mod10(int x)
     {
         var int w, t;
