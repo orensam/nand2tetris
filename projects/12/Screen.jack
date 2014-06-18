@@ -71,10 +71,20 @@ class Screen {
         return SCR + (y*32) + (x/16);
     }
     
+    function bool illegalCoordinate(int x, int y)
+    {
+        return ( (x < 0) | (x > max_x) | (y < 0) | (y > max_y) );
+    }
     /** Draws the (x, y) pixel. */
     function void drawPixel(int x, int y) 
     {
         var int address;
+        
+        if (Screen.illegalCoordinate(x, y))
+        {
+            do Sys.error(7);
+            return;
+        }
         
         let address = Screen.getPixelAddress(x, y);
         
@@ -181,6 +191,11 @@ class Screen {
     {
         var int dx, dy, a, b, tmp;
         
+        if ( Screen.illegalCoordinate(x1, y1) | Screen.illegalCoordinate(x2, y2) )
+        {
+            do Sys.error(8);
+        }
+        
         if (x1 = x2)
         {
             do Screen.drawVerticalLine(x1, y1, y2);
@@ -282,6 +297,11 @@ class Screen {
     {
         var int tmp;
         
+        if ( Screen.illegalCoordinate(x1, y1) | Screen.illegalCoordinate(x2, y2) )
+        {
+            do Sys.error(9);
+        }
+        
         if (y2 < y1)
         {
             let tmp = y2;
@@ -303,6 +323,16 @@ class Screen {
     {
         var int dx, dy;
         
+        if (Screen.illegalCoordinate(cx, cy))
+        {
+            do Sys.error(12);
+        }
+        
+        if ( Screen.illegalCoordinate(cx + r, cy) | Screen.illegalCoordinate(cx - r, cy)
+            | Screen.illegalCoordinate(cx, cy + r) | Screen.illegalCoordinate(cx, cy - r) )
+        {
+            do Sys.error(13);
+        }
         let dy = -r;
         
         while (dy < (r+1))
