@@ -27,6 +27,10 @@ class Math {
         return x;
     }
     
+    /**
+     * Inits the 16-cell powers-of-2 array with 1, 1+1, (1+1) + (1+1), ...
+     * Used as bit masks for multiplication.
+     */
     function void initPowers()
     {
         var int i;
@@ -47,6 +51,45 @@ class Math {
         return;
     }
     
+    /** Returns the integer part of x/y. */
+    function int divide(int x, int y) 
+    {
+        if (y = 0)
+        {
+            do Sys.error(3);
+        }
+        
+        if ( ((x < 0) & (y > 0)) | ((x > 0) & (y < 0)) )
+        {
+            return -Math.recDivide(Math.abs(x), Math.abs(y));
+        }
+        return Math.recDivide(Math.abs(x), Math.abs(y));
+    }
+    
+    /**
+     * A recursive division algorithm.
+     * Assumes a,y are positive.
+     */
+    function int recDivide(int x, int y)
+    {
+        var int q;
+        if ((y > x) | (y < 0))
+        {
+            return 0;
+        }
+        
+        let q = Math.recDivide(x, y + y);
+        if ( (x- ((q + q) * y)) < y)
+        {
+            return q + q;
+        }
+        else
+        {
+            return (q + q) + 1;
+        }
+    }
+    
+    
     /** Returns the product of x and y. */
     function int multiply(int x, int y) 
     {
@@ -65,51 +108,28 @@ class Math {
             let shifted_x = shifted_x + shifted_x;
             let i = i + 1;
         }
-    
+        
         return sum;
     }
     
-    /** Returns the integer part of x/y. */
-    function int divide(int x, int y) 
-    {
-        if (((x<0) & (y>0)) | ((x>0) & (y<0)))
-        {
-            return -Math.recDivide(Math.abs(x), Math.abs(y));
-        }
-        return Math.recDivide(Math.abs(x), Math.abs(y));
-    }
-    
-    function int recDivide(int x, int y)
-    {
-        var int q;
-        if (y>x)
-        {
-            return 0;
-        }
-        
-        let q = Math.divide(x, 2*y);
-        if ( (x-(2*q*y)) < y)
-        {
-            return 2*q;
-        }
-        else
-        {
-            return (2*q)+1;
-        }
-    }
 
     /** Returns the integer part of the square root of x. */
     function int sqrt(int x) 
     {
         var int low, high, mid, square;
+
+        if (x < 0)
+        {
+            do Sys.error(4);
+        }
+
         let low = 0;
-        //let high = (x/2)+1;
-        let high = 182;
+        let high = 182; // Maximum possible integer square root
         
-        while ((low+1) < high)
+        while ((low + 1) < high)
         {
             let mid = low + ((high-low) / 2);
-            let square = mid*mid;
+            let square = mid * mid;
             
             if (square = x)
             {
