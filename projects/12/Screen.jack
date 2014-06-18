@@ -68,10 +68,49 @@ class Screen {
         return;
     }
     
+    /** Multiplies y by 32 using addition. */
+    function int mult32(int y)
+    {
+        var int i;
+        
+        let i = 0;
+        
+        while(i < 5)
+        {
+            let y = y + y;
+            let i = i + 1;
+        }
+        
+        return y;
+    }
+    
+    /** Divides x by 16 using bitmasks */
+    function int div16(int x)
+    {
+        var int i, res;
+        
+        let i = 4;    
+        let res = 0;
+        
+        while(i < 16)
+        {
+            if ( (x & powers[i]) = powers[i] )
+            {
+                let res = res + powers[i - 4];
+            }
+            let i = i + 1;
+        }
+        return res;
+    }
+    
     /** Returns the base address for the pixel at (x,y) on the screen */
     function int getPixelAddress(int x, int y)
     {
-        return SCR + (y*32) + (x/16);
+        if (Screen.illegalCoordinate(x, y))
+        {
+            do Sys.error(7);
+        }
+        return SCR + Screen.mult32(y) + Screen.div16(x);
     }
     
     /** Returns true iff coordinate (x,y) is out of screen bounds */
@@ -84,12 +123,6 @@ class Screen {
     function void drawPixel(int x, int y) 
     {
         var int address;
-        
-        if (Screen.illegalCoordinate(x, y))
-        {
-            do Sys.error(7);
-            return;
-        }
         
         let address = Screen.getPixelAddress(x, y);
         
