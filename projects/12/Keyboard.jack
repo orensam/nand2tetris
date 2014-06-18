@@ -102,21 +102,6 @@ class Keyboard {
         
         return ret;
     }
-    
-//    function String get_longer_str(String s)
-//    {
-//        var String tmpstr;
-//        var int i;
-//        
-//        let tmpstr = String.new(2 * s.length());
-//        while (i < s.length())
-//        {
-//            do tmpstr.appendChar(s.charAt(i));
-//            let i = i + 1;
-//        }
-//        do s.dispose();
-//        return tmpstr;
-//    }
 
     /**								
      * Prints the message on the screen, reads the next line
