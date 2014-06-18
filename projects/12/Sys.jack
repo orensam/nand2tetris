@@ -35,14 +35,20 @@ class Sys {
     {
         var int i, j, k;
         
+        if (duration < 0)
+        {
+            do Sys.error(1);
+            return;
+        }
+        
         let j = 0;
         while (j < (duration))
         {
             let j = j + 1;
             let k = 0;
-            while (k < 40)
+            while (k < 3)
             {
-                let i = 6487 / 3780;
+                let i = 100 * 100;
                 let k = k + 1;
             }
         }
