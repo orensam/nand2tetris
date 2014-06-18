@@ -11,15 +11,18 @@ class String {
     field Array chars;
     field int len;
     field int max_len;
+
     
     /** Constructs a new empty String with a maximum length of maxLength. */
     constructor String new(int maxLength) 
     {
-        let max_len = maxLength;
-        if (max_len > 0)
+        if (maxLength < 0)
         {
-            let chars = Array.new(max_len);
+            do Sys.error(14);
         }
+        
+        let max_len = maxLength;
+        let chars = Array.new(max_len);
         let len = 0;
         return this;
     }
@@ -40,12 +43,21 @@ class String {
     /** Returns the character at location j. */
     method char charAt(int j) 
     {
+        if (j > len)
+        {
+            do Sys.error(15);
+        }
         return chars[j];
     }
 
     /** Sets the j'th character of this string to be c. */
     method void setCharAt(int j, char c) 
     {
+        if (j > len)
+        {
+            do Sys.error(16);
+        }
+        
         let chars[j] = c;
         return;
     }
@@ -54,6 +66,11 @@ class String {
      *  Returns this string as the return value. */
     method String appendChar(char c) 
     {
+        if (len = max_len)
+        {
+            do Sys.error(17);
+        }
+        
         let chars[len] = c;
         let len = len + 1;
         return this;
@@ -62,10 +79,11 @@ class String {
     /** Erases the last character from this String. */
     method void eraseLastChar() 
     {
-        if (len > 0)
+        if (len = 0)
         {
-            let len = len - 1;
+            do Sys.error(18);
         }
+        let len = len - 1;
         return;
     }
 
@@ -121,6 +139,7 @@ class String {
         
         while (number > 0)
         {
+            //do Output.println();
             do tmp.appendChar(String.mod10(number) + 48);
             let number = number / 10;
         }
@@ -142,7 +161,10 @@ class String {
     
     function int mod10(int x)
     {
-        return x - ((x / 10) * 10);
+        var int w, t;
+        let w = Math.divide(x,10);
+        let t = Math.multiply(w,10);
+        return x - t;
     }
 
     /** Returns the new line character. */
