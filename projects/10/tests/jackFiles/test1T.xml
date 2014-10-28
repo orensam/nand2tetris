@@ -1,0 +1,29 @@
+<tokens>
+<keyword> class </keyword>
+<identifier> erana06 </identifier>
+<symbol> { </symbol>
+<keyword> constructor </keyword>
+<identifier> String </identifier>
+<identifier> benny </identifier>
+<symbol> ( </symbol>
+<symbol> ) </symbol>
+<symbol> { </symbol>
+<keyword> var </keyword>
+<keyword> int </keyword>
+<identifier> a </identifier>
+<symbol> , </symbol>
+<identifier> b </identifier>
+<symbol> , </symbol>
+<identifier> c </identifier>
+<symbol> , </symbol>
+<identifier> d </identifier>
+<symbol> , </symbol>
+<identifier> e </identifier>
+<symbol> , </symbol>
+<identifier> f </identifier>
+<symbol> , </symbol>
+<identifier> g </identifier>
+<symbol> ; </symbol>
+<symbol> } </symbol>
+<symbol> } </symbol>
+</tokens>

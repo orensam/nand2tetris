@@ -1,0 +1,24 @@
+<tokens>
+<keyword> class </keyword>
+<identifier> simpleCommentTest </identifier>
+<symbol> { </symbol>
+<keyword> function </keyword>
+<keyword> void </keyword>
+<identifier> main </identifier>
+<symbol> ( </symbol>
+<symbol> ) </symbol>
+<symbol> { </symbol>
+<keyword> var </keyword>
+<identifier> String </identifier>
+<identifier> a </identifier>
+<symbol> ; </symbol>
+<keyword> let </keyword>
+<identifier> a </identifier>
+<symbol> = </symbol>
+<stringConstant> test to // test </stringConstant>
+<symbol> ; </symbol>
+<keyword> return </keyword>
+<symbol> ; </symbol>
+<symbol> } </symbol>
+<symbol> } </symbol>
+</tokens>
