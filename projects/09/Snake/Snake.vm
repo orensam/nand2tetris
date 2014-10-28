@@ -1,9 +1,11 @@
 function Snake.new 0
-push constant 4
+push constant 11
 call Memory.alloc 1
 pop pointer 0
 push constant 5
 pop this 3
+push constant 5
+pop this 4
 push constant 5
 pop this 2
 push argument 0
@@ -17,14 +19,63 @@ pop temp 0
 push pointer 0
 call Snake.draw 1
 pop temp 0
+push constant 100
+pop this 5
+push constant 100
+pop this 6
+push constant 30
+pop this 7
+push constant 50
+pop this 8
+push constant 10
+pop this 9
+push constant 20
+pop this 10
 push pointer 0
+call Snake.drawFood 1
+pop temp 0
+push pointer 0
+return
+function Snake.dispose 2
+push argument 0
+pop pointer 0
+push constant 0
+pop local 0
+label WHILE_EXP0
+push local 0
+push this 2
+lt
+not
+if-goto WHILE_END0
+push local 0
+push this 0
+add
+pop pointer 1
+push that 0
+pop local 1
+push local 1
+call SnakeLink.dispose 1
+pop temp 0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push this 0
+call Memory.deAlloc 1
+pop temp 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
 return
 function Snake.buildHead 4
 push argument 0
 pop pointer 0
-push constant 10
+push constant 20
 pop local 0
-push constant 10
+push constant 20
 pop local 1
 push constant 4
 pop local 2
@@ -42,7 +93,9 @@ add
 push local 0
 push local 3
 add
-push constant 7
+push this 3
+call Math.multiply 2
+push constant 2
 call Math.multiply 2
 push local 1
 push this 3
@@ -60,11 +113,93 @@ goto WHILE_EXP0
 label WHILE_END0
 push constant 0
 return
-function Snake.move 4
+function Snake.isDirectionValid 0
 push argument 0
 pop pointer 0
+push argument 2
+push constant 0
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+not
+return
+label IF_FALSE0
+push argument 1
+push argument 2
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 0
+return
+label IF_FALSE1
+push argument 1
+push argument 2
+add
+push constant 3
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push constant 0
+return
+label IF_FALSE2
+push argument 1
+push argument 2
+add
+push constant 7
+eq
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push constant 0
+return
+label IF_FALSE3
+push constant 0
+not
+return
+function Snake.move 11
+push argument 0
+pop pointer 0
+push pointer 0
+call Snake.checkGameover 1
+pop local 9
+push local 9
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+return
+label IF_FALSE0
 push constant 0
 pop local 0
+push this 2
+push constant 1
+sub
+push this 0
+add
+pop pointer 1
+push that 0
+pop local 2
+push local 2
+call SnakeLink.getDirection 1
+pop local 5
+push pointer 0
+push local 5
+push argument 1
+call Snake.isDirectionValid 3
+pop local 8
+push local 8
+not
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 0
+not
+return
+label IF_FALSE1
 label WHILE_EXP0
 push local 0
 push this 2
@@ -78,7 +213,7 @@ push this 0
 add
 pop pointer 1
 push that 0
-pop local 2
+pop local 3
 push local 0
 push constant 1
 add
@@ -86,11 +221,11 @@ push this 0
 add
 pop pointer 1
 push that 0
-pop local 3
-push local 3
+pop local 4
+push local 4
 call SnakeLink.getDirection 1
 pop local 1
-push local 2
+push local 3
 push local 1
 call SnakeLink.setDirection 2
 pop temp 0
@@ -100,25 +235,17 @@ add
 pop local 0
 goto WHILE_EXP0
 label WHILE_END0
-push this 2
-push constant 1
-sub
-push this 0
-add
-pop pointer 1
-push that 0
-pop local 2
 push argument 1
 push constant 0
 gt
-if-goto IF_TRUE0
-goto IF_FALSE0
-label IF_TRUE0
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
 push local 2
 push argument 1
 call SnakeLink.setDirection 2
 pop temp 0
-label IF_FALSE0
+label IF_FALSE2
 push constant 0
 pop local 0
 label WHILE_EXP1
@@ -132,8 +259,8 @@ push this 0
 add
 pop pointer 1
 push that 0
-pop local 2
-push local 2
+pop local 3
+push local 3
 call SnakeLink.move 1
 pop temp 0
 push local 0
@@ -142,11 +269,357 @@ add
 pop local 0
 goto WHILE_EXP1
 label WHILE_END1
+push local 2
+call SnakeLink.getx 1
+pop local 6
+push local 2
+call SnakeLink.gety 1
+pop local 7
+push local 6
+push this 5
+lt
+push this 3
+add
+push local 6
+push this 5
+gt
+push this 3
+sub
+and
+push local 7
+push this 6
+gt
+push this 3
+sub
+and
+push local 7
+push this 6
+lt
+push this 3
+add
+and
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push local 2
+call SnakeLink.getDirection 1
+pop local 5
+push pointer 0
+push local 5
+push local 6
+push local 7
+call Snake.eat 4
+pop local 10
+push local 10
+not
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+call Screen.clearScreen 0
+pop temp 0
+push constant 10
+push constant 10
+call Output.moveCursor 2
+pop temp 0
+push constant 10
+call String.new 1
+push constant 89
+call String.appendChar 2
+push constant 79
+call String.appendChar 2
+push constant 85
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 87
+call String.appendChar 2
+push constant 73
+call String.appendChar 2
+push constant 78
+call String.appendChar 2
+push constant 33
+call String.appendChar 2
+push constant 33
+call String.appendChar 2
+push constant 33
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+push constant 0
+return
+label IF_FALSE4
+label IF_FALSE3
 push pointer 0
 call Snake.draw 1
 pop temp 0
 push constant 100
 call Sys.wait 1
+pop temp 0
+push constant 0
+not
+return
+function Snake.checkGameover 3
+push argument 0
+pop pointer 0
+push this 2
+push constant 1
+sub
+push this 0
+add
+pop pointer 1
+push that 0
+pop local 0
+push local 0
+call SnakeLink.getx 1
+pop local 1
+push local 0
+call SnakeLink.gety 1
+pop local 2
+push local 1
+push constant 15
+lt
+push local 1
+push constant 496
+gt
+or
+push local 2
+push constant 15
+lt
+or
+push local 2
+push constant 245
+gt
+or
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+call Screen.clearScreen 0
+pop temp 0
+push constant 10
+push constant 10
+call Output.moveCursor 2
+pop temp 0
+push constant 11
+call String.new 1
+push constant 89
+call String.appendChar 2
+push constant 79
+call String.appendChar 2
+push constant 85
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 76
+call String.appendChar 2
+push constant 79
+call String.appendChar 2
+push constant 83
+call String.appendChar 2
+push constant 69
+call String.appendChar 2
+push constant 33
+call String.appendChar 2
+push constant 33
+call String.appendChar 2
+push constant 33
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+push constant 0
+not
+return
+label IF_FALSE0
+push constant 0
+return
+function Snake.eat 3
+push argument 0
+pop pointer 0
+push pointer 0
+call Snake.clearFood 1
+pop temp 0
+push this 2
+push this 1
+lt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 1
+push constant 1
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push this 2
+push this 0
+add
+push argument 2
+push argument 3
+push this 3
+push constant 2
+call Math.multiply 2
+sub
+push this 3
+push argument 1
+call SnakeLink.new 4
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+label IF_FALSE1
+push argument 1
+push constant 2
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push this 2
+push this 0
+add
+push argument 2
+push argument 3
+push this 3
+push constant 2
+call Math.multiply 2
+add
+push this 3
+push argument 1
+call SnakeLink.new 4
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+label IF_FALSE2
+push argument 1
+push constant 3
+eq
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push this 2
+push this 0
+add
+push argument 2
+push constant 2
+push this 3
+call Math.multiply 2
+sub
+push argument 3
+push this 3
+push argument 1
+call SnakeLink.new 4
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+label IF_FALSE3
+push argument 1
+push constant 4
+eq
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+push this 2
+push this 0
+add
+push argument 2
+push constant 2
+push this 3
+call Math.multiply 2
+add
+push argument 3
+push this 3
+push argument 1
+call SnakeLink.new 4
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+label IF_FALSE4
+push this 2
+push constant 1
+add
+pop this 2
+goto IF_END0
+label IF_FALSE0
+push constant 0
+return
+label IF_END0
+push pointer 0
+call Snake.drawFood 1
+pop temp 0
+push constant 0
+not
+return
+function Snake.drawFood 2
+push argument 0
+pop pointer 0
+push this 9
+push this 7
+call Math.multiply 2
+push this 10
+add
+pop local 0
+push local 0
+push local 0
+push constant 480
+call Math.divide 2
+push constant 480
+call Math.multiply 2
+sub
+pop this 5
+push this 5
+pop this 7
+push this 9
+push this 8
+call Math.multiply 2
+push this 10
+add
+pop local 1
+push local 1
+push local 1
+push constant 240
+call Math.divide 2
+push constant 240
+call Math.multiply 2
+sub
+pop this 6
+push this 6
+pop this 8
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push this 5
+push this 6
+push this 4
+call Screen.drawCircle 3
+pop temp 0
+push constant 0
+return
+function Snake.unclearFood 0
+push argument 0
+pop pointer 0
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push this 5
+push this 6
+push this 4
+call Screen.drawCircle 3
+pop temp 0
+push constant 0
+return
+function Snake.clearFood 0
+push argument 0
+pop pointer 0
+push constant 0
+call Screen.setColor 1
+pop temp 0
+push this 5
+push this 6
+push this 4
+call Screen.drawCircle 3
 pop temp 0
 push constant 0
 return
